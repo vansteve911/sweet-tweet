@@ -5,27 +5,28 @@ var morgan = require('morgan');
 var fs = require('fs');
 var bodyParser = require('body-parser');
 
+var app = express();
+
+// config loggers
+// access log
+var accessLogStream = fs.createWriteStream(config.accessLog.path, {flags: 'a'});
+app.use(morgan('combined', {stream : accessLogStream}));
+// stdout log
 var logger = require('./logger.js');
 
-require('./errorHandler.js');
-
-var app = express();
-// app.use(logger);
-
 // config static file
-app.use(express.static(__dirname + '/static'));
+app.use('/static', express.static('./static'));
 
-var accessLogStream = fs.createWriteStream(config.logger.accessLogPath, {flags: 'a'});
+// config routers
+var uploadRouter = require('./routers/upload.js');
+app.use('/api/upload', uploadRouter);
 
-// add default middlewares
-app.use(morgan('combined', {stream : accessLogStream}));
-
-// config route
 app.get('/', function(request, response) {
-  logger.info('hehehe!');
   response.send('Hello World!');
 });
 
 app.listen(config.port, function() {
   console.log('Node app is running on port', config.port);
 });
+
+require('./errorHandler.js');
