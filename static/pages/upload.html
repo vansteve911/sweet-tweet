@@ -1,0 +1,48 @@
+<!DOCTYPE html5>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>上传文件</title>
+</head>
+<body>
+  <section>
+    <div>
+      <form id="upload-form" method="post" action="http://upload.qiniu.com/"
+       enctype="multipart/form-data">
+        <input name="key" type="hidden" value="<resource_key>">
+        <!-- <input name="x:<custom_name>" type="hidden" value="<custom_value>"> -->
+        <input name="token" type="hidden" value="<upload_token>">
+        <input name="file" type="file" />
+        <!-- <input name="crc32" type="hidden" /> -->
+        <!-- <input name="accept" type="hidden" /> -->
+        <input type="submit" name="">
+      </form>
+
+      
+      <form method="post" action="http://127.0.0.1:5000/api/upload/testUploadPic"
+       enctype="multipart/form-data">
+        <input name="key" type="hidden" value="<resource_key>">
+        <input name="sdf" type="text" value="sdasd">
+        <input name="token" type="hidden" value="<upload_token>">
+        <input name="file" type="file" />
+        <!-- <input name="crc32" type="hidden" /> -->
+        <!-- <input name="accept" type="hidden" /> -->
+        <input type="submit" name="">
+      </form>
+
+    </div>
+  </section>
+</body>
+<script src="//cdn.bootcss.com/jquery/2.2.0/jquery.min.js"></script>
+<script src="../js/main.js"></script>
+<script type="text/javascript">
+  $('#upload-form [name=file]').change(function(){
+    var url = '/api/upload/token?filename=' + getFilePathName($(this).val());
+    $.getJSON(url, function(data){
+      $('#upload-form [name=token]').val(data.data.token);
+      $('#upload-form [name=key]').val(data.data.key);
+    });
+  });
+</script>
+</html>
+
