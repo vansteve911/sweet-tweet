@@ -14,7 +14,9 @@
     "body-parser": "1.15.2",
     "request": "2.72.0",
     "connect-multiparty": "2.0.0",
-    "qiniu": "6.1.11"
+    "qiniu": "6.1.11",
+    "pg": "6.0.1",
+    "redis": "2.6.2"
   },
   "repository": {
     "type": "git",

@@ -8,7 +8,8 @@ const app = express();
 
 const config = require('./config.js');
 const logger = require('./logger.js');
-const uploadRouter = require('./routers/upload.js');
+const uploadRouter = require('./controllers/upload.js');
+const errorHandler = require('./middlewares/errorHandler.js');
 
 // config middlewares
 
@@ -35,9 +36,7 @@ app.get('/', function(request, response) {
 app.use('/api/upload', uploadRouter);
 
 // config error handlers
-const errorHandler = require('./errorHandler.js');
 app.use(errorHandler.requestErrorHandler);
-
 process.on('uncaughtException', function(err) {
   errorHandler.uncaughtExceptionHandler(err);
 });
