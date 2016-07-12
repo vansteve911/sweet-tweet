@@ -5,49 +5,106 @@ const RedisCache = require('../storage/cache');
 
 function Tweet(data) {
   data = data || {};
-  let self = this;
-  self.id = parseInt(data.id) || 0; // 0-纯文字，1-带图，2-带视频
-  self.type = parseInt(data.type) || 0;
-  self.content = data.content || '';
-  self.user_id = parseInt(data.user_id) || 0;
-  self.time = data.time || new Date();
-  self.config = data.config || {};
+  this.id = parseInt(data.id) || 0; // 0-纯文字，1-带图，2-带视频
+  this.type = parseInt(data.type) || 0;
+  this.content = data.content || '';
+  this.user_id = parseInt(data.user_id) || 0;
+  this.time = data.time || new Date();
+  this.config = data.config || {};
 }
 
-Tweet.prototype.get = function(id, callback) {
+Tweet.prototype.get = function(id) {
   let self = this;
-  return self.cacheStore.getTweet(id).then(function(result) {
-    if (result) {
-      callback(null, result);
-    } else {
-      self.dbStore.get(id).then(function(data) {
-        if (data) {
-          self.cacheStore.setTweet(data);
-        }
-        callback(null, data);
-      }, function(err) {
-        callback(err);
+  return new Promise((resolve, reject) => {
+    if (parseInt(id) !== NaN) {
+      self.cacheStore.getTweet(id)
+      .then((result) => {
+        self.cacheStore.parseObjectResult(result)
+        .then((tweet) => {
+          if (tweet) {
+            resolve(tweet);
+          } else {
+            // get from db
+            self.dbStore.getTweet(id)
+            .then((tweet) => {
+              resolve(tweet);
+              if (tweet) {
+                self.cacheStore.setTweet(tweet)
+                  .then().catch((err) => {
+                    console.error('' + err, err.stack);
+                  });
+              } else {
+                // add empty item to cache
+              }
+            })
+            .catch(reject);
+          }
+        })
+        .catch(reject);
       });
+    } else {
+      reject(new Error('invalid id: ' + id));
     }
-  }, function(err) {
-    callback(err);
   });
 }
 
-Tweet.prototype.add = function(data, callback) {
+Tweet.prototype.add = function(data) {
   let self = this;
-  return self.dbStore.create(data)
-    .then(self.cacheStore.setTweet)
-    .then(self.cacheStore.addToTweetIdList)
-    .then(function(result) {
-      callback(null, result);
-    }, function(err) {
-      callback(err);
-    })
+  return new Promise((resolve, reject)=>{
+    if(data){
+      self.dbStore.create(data)
+      .then((tweet) => {
+        resolve(true);
+        Promise.all(self.cacheStore.setTweet(tweet), self.cacheStore.addToTweetIdList(tweet))
+          catch(console.error); 
+      })
+      .catch(reject);
+    } else {
+      resolve(false);
+    }
+  });
 }
 
-Tweet.prototype.getList = function(score, count, callback) {
+Tweet.prototype.getList = function(score, count) {
   let self = this;
+  let _errLogAnd
+  return new Promise((resolve, reject) => {
+    if((score = parseFloat(score)) && (count = parseInt(count)) && count > 0){
+      self.cacheStore.getTweetIdList({
+        score: score,
+        count: count
+      })
+      .then((idList)=>{
+        if(Array.isArray(idList) && idList.length > 0){
+          let promises =idList.map((id)=>{
+            self.getId(id)
+          });
+          Promise.all(promises)
+          .then(resolve)
+          .catch(reject);
+        } else {
+          // get from db
+          self.dbStore.getTweetList(score, count, 0)
+          .then((tweets)=>{
+            if(tweets){
+              resolve(tweets);
+              let promises =idList.map((tweet)=>{
+                self.add(tweet)
+              });
+              Promise.all(promises)
+              .catch(console.error);
+            }
+
+          })
+          .catch(reject);
+        }
+      })
+      .catch(reject);
+    } else {
+      resolve(null);
+    }
+  });
+
   self.cacheStore.getTweetIdList({
       score: score,
       count: count
