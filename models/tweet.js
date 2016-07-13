@@ -18,14 +18,12 @@ Tweet.prototype.get = function(id) {
   return new Promise((resolve, reject) => {
     if (parseInt(id) !== NaN) {
       self.cacheStore.getTweet(id)
-      .then((result) => {
-        self.cacheStore.parseObjectResult(result)
-        .then((tweet) => {
-          if (tweet) {
-            resolve(tweet);
-          } else {
-            // get from db
-            self.dbStore.getTweet(id)
+      .then((tweet) => {
+        if (tweet) {
+          resolve(tweet);
+        } else {
+          // get from db
+          self.dbStore.getTweet(id)
             .then((tweet) => {
               resolve(tweet);
               if (tweet) {
@@ -38,10 +36,9 @@ Tweet.prototype.get = function(id) {
               }
             })
             .catch(reject);
-          }
-        })
-        .catch(reject);
-      });
+        }
+      })
+      .catch(reject);
     } else {
       reject(new Error('invalid id: ' + id));
     }
@@ -50,13 +47,16 @@ Tweet.prototype.get = function(id) {
 
 Tweet.prototype.add = function(data) {
   let self = this;
-  return new Promise((resolve, reject)=>{
-    if(data){
+  return new Promise((resolve, reject) => {
+    if (data) {
       self.dbStore.create(data)
       .then((tweet) => {
         resolve(true);
-        Promise.all(self.cacheStore.setTweet(tweet), self.cacheStore.addToTweetIdList(tweet))
-          catch(console.error); 
+        Promise.all([self.cacheStore.setTweet(tweet), self.cacheStore.addToTweetIdList(tweet)])
+        .then((tweet)=>{
+          console.log('add success: ', tweet);
+        })
+        .catch (console.error);
       })
       .catch(reject);
     } else {
@@ -67,86 +67,43 @@ Tweet.prototype.add = function(data) {
 
 Tweet.prototype.getList = function(score, count) {
   let self = this;
-  let _errLogAnd
   return new Promise((resolve, reject) => {
-    if((score = parseFloat(score)) && (count = parseInt(count)) && count > 0){
+    if ((score = parseFloat(score)) && (count = parseInt(count)) && count > 0) {
       self.cacheStore.getTweetIdList({
-        score: score,
-        count: count
-      })
-      .then((idList)=>{
-        if(Array.isArray(idList) && idList.length > 0){
-          let promises =idList.map((id)=>{
-            self.getId(id)
-          });
-          Promise.all(promises)
-          .then(resolve)
-          .catch(reject);
-        } else {
-          // get from db
-          self.dbStore.getTweetList(score, count, 0)
-          .then((tweets)=>{
-            if(tweets){
-              resolve(tweets);
-              let promises =idList.map((tweet)=>{
-                self.add(tweet)
-              });
-              Promise.all(promises)
-              .catch(console.error);
-            }
-
-          })
-          .catch(reject);
-        }
-      })
-      .catch(reject);
+          score: score,
+          count: count
+        })
+        .then((idList) => {
+          if (Array.isArray(idList) && idList.length > 0) {
+            let promises = idList.map(id => self.get(id));
+            Promise.all(promises)
+            .then(resolve)
+            .catch(reject);
+          } else {
+            // get from db
+            self.dbStore.getTweetList(new Date(score), count, 0)
+            .then((tweets) => {
+              if (tweets) {
+                resolve(tweets);
+                let promises = tweets.map(tweet => 
+                  self.add(tweet)
+                );
+                Promise.all(promises)
+                .then((res) => {
+                  console.log('add tweet ids success');
+                }, (err) => {
+                  console.error();
+                });
+              }
+            })
+            .catch(reject);
+          }
+        })
+        .catch(reject);
     } else {
       resolve(null);
     }
   });
-
-  self.cacheStore.getTweetIdList({
-      score: score,
-      count: count
-    })
-    .then((list) => {
-      return new Promise(function(resolve, reject) {
-        if (!list || !Array.isArray(list)) {
-          resolve();
-        } else {
-          if (list.length === 0) {
-            self.dbStore.getTweetList(score, count, 0).then(function(results) {
-              console.log(results);
-              self.cacheStore.addToTweetIdList(results).then(function(res) {
-                callback(null, results);
-              }, function(err) {
-                callback(err);
-              });
-            }, function(err) {
-              callback(err);
-            });
-            return;
-          }
-          let promises = [];
-          list.forEach(function(id) {
-            promises.push(new Promise(function(_resolve, _reject) {
-              self.get(id, function(err, res) {
-                if (err) {
-                  _reject(err);
-                } else {
-                  _resolve(res);
-                }
-              })
-            }));
-          });
-          Promise.all(promises).then(function(results) {
-            callback(null, results);
-          }, function(err) {
-            callback(err);
-          });
-        }
-      });
-    });
 }
 
 /*****/
@@ -163,9 +120,9 @@ CacheStore.prototype.keyPrefixes = {
 CacheStore.prototype.getTweet = function(id) {
   let self = this;
   return self.get({
-      key: self.keyPrefixes.tweet + id
-    })
-    .then(self.parseObjectResult);
+    key: self.keyPrefixes.tweet + id
+  })
+  .then(self.parseObjectResult);
 }
 
 CacheStore.prototype.setTweet = function(data) {
@@ -203,7 +160,7 @@ CacheStore.prototype.addToTweetIdList = function(data) {
           scoreMap[member] = score;
         }
       });
-      self.client.zadd({
+      self.zadd({
         key: key,
         scoreMap: scoreMap
       }).then(resolve, reject);
@@ -212,16 +169,15 @@ CacheStore.prototype.addToTweetIdList = function(data) {
 }
 
 CacheStore.prototype.getTweetIdList = function(args) {
-  let self = this,
-    key = self.keyPrefixes.tweetIdList,
-    score, offset, count;
+  let self = this, key = self.keyPrefixes.tweetIdList, score, offset, count;
   return new Promise((resolve, reject) => {
-    if (args && (score = args.score) && (offset = args.offset) && (count = args.count)) {
+    if (args) {
       self.zrangebyscore({
         key: key,
-        upper: score,
+        upper: args.score,
         lower: 0,
-        count: count
+        count: args.count,
+        offset: args.offset
       }).then(resolve, reject);
     } else {
       reject(new Error('empty args'));

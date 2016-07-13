@@ -5,7 +5,7 @@ const redis = require('redis'),
 
 function RedisCache() {}
 
-RedisCache.prototype.activateClient = () => {
+RedisCache.prototype.activateClient = function() {
   let self = this;
   return new Promise((resolve, reject)=>{
     try{
@@ -23,7 +23,7 @@ RedisCache.prototype.activateClient = () => {
   })
 }
 
-RedisCache.prototype.get = (args) => {
+RedisCache.prototype.get = function(args) {
   let self = this, key;
   return new Promise((resolve, reject) => {
     if(args && (key = args.key)){
@@ -36,9 +36,9 @@ RedisCache.prototype.get = (args) => {
             resolve(res);
           }
           client.quit();
-        }).catch(err){
+        }).catch((err)=>{
           reject(err);
-        };
+        });
       })
     } else {
       reject(new Error('empty args' + args));
@@ -46,7 +46,7 @@ RedisCache.prototype.get = (args) => {
   });
 }
 
-RedisCache.prototype.set = (args) => {
+RedisCache.prototype.set = function (args) {
   let self = this, key, value;
   return new Promise(function(resolve, reject) {
     if (args && (key = args.key) && (value = args.value)) {
@@ -60,16 +60,16 @@ RedisCache.prototype.set = (args) => {
           }
         });
         client.quit();
-      }).catch(err){
+      }).catch((err)=>{
         reject(err);
-      };
+      });
     } else {
       reject(new Error('empty args' + args));
     }
   });
 }
 
-RedisCache.prototype.hmset = (args) =>{
+RedisCache.prototype.hmset = function(args){
   let self = this, key, map;
   return new Promise((resolve, reject) => {
     if (args && (key = args.key) && (map = args.map)) {
@@ -87,16 +87,16 @@ RedisCache.prototype.hmset = (args) =>{
           }
         });
         client.quit();
-      }).catch(err){
+      }).catch((err)=>{
         reject(err);
-      };
+      });
     } else {
       reject(new Error('empty args' + args));
     }
   });
 }
 
-RedisCache.prototype.hgetall = (args) => {
+RedisCache.prototype.hgetall = function(args) {
   let self = this, key;
   return new Promise((resolve, reject)=> {
     if (args && (key = args.key)) {
@@ -117,7 +117,7 @@ RedisCache.prototype.hgetall = (args) => {
   });
 }
 
-RedisCache.prototype.zadd = (args) => {
+RedisCache.prototype.zadd = function(args) {
   let self = this, key, scoreMap;
   return new Promise((resolve, reject) => {
     if (args && (key = args.key) && (scoreMap = args.scoreMap)) {
@@ -143,16 +143,17 @@ RedisCache.prototype.zadd = (args) => {
         });
         client.quit();
 
-      }).catch(err){
+      })
+      .catch((err)=>{
         reject(err);
-      };  
+      });  
     } else {
       reject(new Error('empty args' + args));
     }
   });
 }
 
-RedisCache.prototype.zrangebyscore = (args) => {
+RedisCache.prototype.zrangebyscore = function(args) {
   let self = this, key, lower, upper, count, offset, rev;
   return new Promise((resolve, reject) =>{
     if (args && (key = args.key)) {
@@ -192,8 +193,7 @@ RedisCache.prototype.zrangebyscore = (args) => {
   });
 }
 
-
-RedisCache.prototype.parseObjectResult = (result) => {
+RedisCache.prototype.parseObjectResult = function(result) {
   let self = this;
   return new Promise((resolve, reject) => {
     if (result) {

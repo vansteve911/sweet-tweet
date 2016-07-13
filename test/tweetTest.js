@@ -2,9 +2,15 @@
 const Tweet = require('../models/tweet');
 
 let t = new Tweet();
-t.cacheStore.getTweet(1).then(console.log);
-t.getList(new Date(), 3, function(err, result){
-  console.log(result, 1);
+// t.cacheStore.getTweet(1).then(console.log);
+
+let d= new Date();
+t.getList(d.getTime(), 3)
+.then(res=>{
+  console.log(666, res);
+})
+.catch((err)=>{
+  console.error(err.message, err.stack)
 });
 // t.get(1, function(err, res){
 //   console.log('sdfsdfs');

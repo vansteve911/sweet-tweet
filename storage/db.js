@@ -108,7 +108,6 @@ DB.prototype.parseResultRow = function(result) {
 }
 DB.prototype.parseAffectedRowCount = function(result) {
   return new Promise(function(resolve, reject) {
-    console.log(result);
     if (!result || !result.rowCount) {
       reject(new Error('invalid affected rows'));
     } else {
