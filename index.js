@@ -1,15 +1,17 @@
 'use strict';
 
-const express = require('express');
-const morgan = require('morgan');
-const fs = require('fs');
-const bodyParser = require('body-parser');
-const app = express();
-
-const config = require('./config.js');
-const logger = require('./logger.js');
-const uploadRouter = require('./controllers/upload.js');
-const errorHandler = require('./middlewares/errorHandler.js');
+const express = require('express'),
+  morgan = require('morgan'),
+  fs = require('fs'),
+  bodyParser = require('body-parser'),
+  app = express(),
+  config = require('./config'),
+  logger = require('./logger'),
+  authRouter = require('./controllers/auth'),
+  tweetRouter = require('./controllers/tweet'),
+  uploadRouter = require('./controllers/upload'),
+  userRouter = require('./controllers/user'),
+  errorHandler = require('./middlewares/errorHandler');
 
 // config middlewares
 
@@ -33,13 +35,13 @@ app.get('/', function(request, response) {
   response.send('Hello World!');
 });
 // upload api
+app.use('/api/auth', authRouter);
+app.use('/api/tweet', tweetRouter);
 app.use('/api/upload', uploadRouter);
+app.use('/api/user', userRouter);
 
 // config error handlers
 app.use(errorHandler.requestErrorHandler);
-process.on('uncaughtException', function(err) {
-  errorHandler.uncaughtExceptionHandler(err);
-});
 
 // start server
 app.listen(config.port, function() {

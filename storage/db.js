@@ -1,6 +1,6 @@
 'use strict';
-const config = require('../config');
-const pg = require('pg');
+const pg = require('pg'),
+  config = require('../config');
 
 function DB() {}
 
@@ -96,13 +96,13 @@ DB.prototype.parseResultRows = function(result) {
 }
 DB.prototype.parseResultRow = function(result) {
   return new Promise(function(resolve, reject) {
-    if (!result || !result.rows || !Array.isArray(result.rows) || result.rows.length !== 1) {
-      let err = new Error('invalid result!');
-      console.error(err.message, err.stack);
-      reject(err);
+    if (!result || !Array.isArray(result.rows) || !result.rows) {
+      resolve(null);
     } else {
+      if(result.rows.length > 1){
+        console.error('get multiple line results!');
+      }
       resolve(result.rows[0]);
-      return;
     }
   });
 }

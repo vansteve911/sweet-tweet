@@ -50,13 +50,61 @@ RedisCache.prototype.set = function (args) {
   let self = this, key, value;
   return new Promise(function(resolve, reject) {
     if (args && (key = args.key) && (value = args.value)) {
-      self.activateClient().then((client)=>{
+      self.activateClient()
+      .then((client)=>{
         client.set(key, value, (err, res) => {
           if (err) {
             console.error('failed to set, key: ' + key + ', value: ' + value, err.message, err.stack);
             reject(err);
           } else {
             resolve(res === 'OK');
+          }
+        });
+        client.quit();
+      }
+      ).catch((err)=>{
+        reject(err);
+      });
+    } else {
+      reject(new Error('empty args' + args));
+    }
+  });
+}
+
+RedisCache.prototype.del = function (args) {
+  let self = this, key;
+  return new Promise(function(resolve, reject) {
+    if (args && (key = args.key)) {
+      self.activateClient().then((client)=>{
+        client.del(key, (err, res) => {
+          if (err) {
+            console.error('failed to del, key: ' + key, err.message, err.stack);
+            reject(err);
+          } else {
+            resolve(res);
+          }
+        });
+        client.quit();
+      }).catch((err)=>{
+        reject(err);
+      });
+    } else {
+      reject(new Error('empty args' + args));
+    }
+  });
+}
+
+RedisCache.prototype.expire = function (args) {
+  let self = this, key, seconds;
+  return new Promise(function(resolve, reject) {
+    if (args && (key = args.key) && (seconds = parseInt(seconds))) {
+      self.activateClient().then((client)=>{
+        client.expire(key, seconds, (err, res) => {
+          if (err) {
+            console.error('failed to expire, key: ' + key + ', seconds: ' + seconds, err.message, err.stack);
+            reject(err);
+          } else {
+            resolve(res);
           }
         });
         client.quit();
@@ -200,6 +248,7 @@ RedisCache.prototype.parseObjectResult = function(result) {
       try {
         resolve(JSON.parse(result));
       } catch (err) {
+        console.error('parseObjectResult err: ', err);
         reject(err);
       }
     } else {

@@ -1,10 +1,10 @@
 'use strict';
 // define request error handler
 function requestErrorHandler(err, req, res, next) {
-  console.error('error occured', err.stack);
+  console.error('error occured', err);
   res.status(500);
   res.json({
-    'code': 500,
+    'code': err.code,
     'error': err.message
   });
 }
