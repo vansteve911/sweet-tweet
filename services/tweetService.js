@@ -1,6 +1,8 @@
 'use strict';
 const Tweet = require('../models/tweet'),
+  logger = require('../logger'),
 	t = new Tweet(),
+  cryptUtils = require('../utils/cryptUtils'),
 	ApiError = require('../common/apiError'),
 	errorCode = require('../common/errorCode');
 
@@ -65,7 +67,7 @@ const tweetTypes = [
 
 function genTweetID(tweet) {
 	if (tweet && tweet.createTime && tweet.user_id) {
-		return hashUtils.genID('tweet/' + tweet.createTime + '/' + tweet.user_id);
+		return cryptUtils.genID('tweet/' + tweet.createTime + '/' + tweet.user_id);
 	}
 	return null;
 }
@@ -79,7 +81,7 @@ function parseToView(model) {
 			}
 			delete model.config;
 		} catch (err) {
-			console.error(err);
+			logger.error(err);
 		}
 	}
 	return model;

@@ -9,10 +9,9 @@ CREATE TABLE IF NOT EXISTS tweet(
   content varchar(2000) NOT NULL DEFAULT '',
   config varchar(3000) NOT NULL DEFAULT ''
 );
-CREATE INDEX idx_time ON tweet (time);
+CREATE INDEX idx_time ON tweet (create_time);
 
-
-CREATE TABLE IF NOT EXISTS user(
+CREATE TABLE IF NOT EXISTS user_basic (
   _id serial PRIMARY KEY NOT NULL,
   id bigint UNIQUE NOT NULL DEFAULT '0',
   account varchar(100) NOT NULL DEFAULT '',
@@ -24,3 +23,4 @@ CREATE TABLE IF NOT EXISTS user(
   create_time date,
   remark varchar(500) NOT NULL DEFAULT ''
 );
+CREATE INDEX idx_nickname ON user_basic (nickname);

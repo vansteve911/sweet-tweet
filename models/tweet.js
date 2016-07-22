@@ -1,5 +1,6 @@
 'use strict';
 const util = require('util'),
+  logger = require('../logger'),
 	DB = require('../storage/db'),
 	RedisCache = require('../storage/cache'),
 	hashUtils = require('../utils/hashUtils.js');
@@ -31,7 +32,7 @@ Tweet.prototype.get = function(id) {
 								if (tweet) {
 									self.cacheStore.setTweet(tweet)
 										.then().catch((err) => {
-											console.error('' + err, err.stack);
+											logger.error('' + err, err.stack);
 										});
 								} else {
 									// add empty item to cache
@@ -58,7 +59,7 @@ Tweet.prototype.add = function(data) {
 						.then((res) => {
 							console.log('add to cache success: ', tweet);
 						})
-						.catch(console.error);
+						.catch(logger.error);
 				})
 				.catch(reject);
 		} else {
@@ -94,7 +95,7 @@ Tweet.prototype.getList = function(score, count) {
 										.then((res) => {
 											console.log('add tweet ids success');
 										}, (err) => {
-											console.error();
+											logger.error();
 										});
 								}
 							})

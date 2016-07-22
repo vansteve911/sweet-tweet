@@ -1,32 +1,33 @@
 'use strict';
 const ApiError = require('../common/apiError'),
-  ErrorCode = require('../common/errorCode');
+  ErrorCode = require('../common/errorCode'),
+  logger = require('../logger'),
+  userService = require('./userService');
 
 function AuthService() {}
 
 AuthService.prototype.login = function(args, req, res) {
   return new Promise((resolve, reject) => {
+    logger.debug('into login');
     if (!req || !req.session) {
       reject(new ApiError('session not supported!'));
     }
-    console.log('loginING, req.session: ', req.session);
-    let username, password;
-    if (args && (username = args.username) && (password = args.password)) {
-      if (username === 'admin' && password === 'admin') { // TODO
-        let loginUser = {
-            id: 110,
-            name: 'admin'
-          }
-          // set login user in session
+    logger.debug('loginING, req.session: ', req.session);
+    let account, password;
+    if (args && (account = args.account) && (password = args.password)) {
+      userService.authenticate(account, password)
+      .then((loginUser)=>{
+        // set login user in session
         req.session.regenerate(function() {
           req.session.userId = loginUser.id;
           req.user = loginUser;
           resolve(loginUser);
         });
-        return;
-      }
+      })
+      .catch(reject);
+    } else {
+      reject(new ApiError('illegal account or password!', ErrorCode.UNAUTHORIZED));  
     }
-    reject(new ApiError('illegal username or password!', ErrorCode.UNAUTHORIZED));
   });
 }
 
@@ -35,11 +36,11 @@ AuthService.prototype.logout = function(req, res) {
     if (!req || !req.session) {
       reject(new ApiError('session not supported!'));
     }
-    console.log('logoutING, req.session: ', req.session);
+    logger.debug('logoutING, req.session: ', req.session);
     if (req.session.userId) {
       req.session.destroy(function(err) {
         if (err) {
-          console.error('failed to destroy session: ', err.stack);
+          logger.error('failed to destroy session: ', err.stack);
           reject(err);
         } else {
           resolve();
@@ -56,7 +57,7 @@ AuthService.prototype.myInfo = function(req, res) {
     if (!req || !req.session) {
       reject(new ApiError('session not supported!'));
     }
-    console.log('myInfoING, req.session: ', req.session);
+    logger.debug('myInfoING, req.session: ', req.session);
     if (req.user) {
       resolve(req.user);
     } else {

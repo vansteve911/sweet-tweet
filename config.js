@@ -37,6 +37,8 @@ module.exports = {
 		}
 	},
 	security: {
-		keyFile: __dirname + '/keys/key.pem'
+		passwordKey: __dirname + '/keys/password.pem',
+		serverKey: __dirname + '/keys/server.pem',
+		certKey: __dirname + '/keys/cert.pem'
 	}
 };

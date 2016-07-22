@@ -1,7 +1,9 @@
 'use strict';
+const logger = require('../logger');
+
 // define request error handler
 function requestErrorHandler(err, req, res, next) {
-  console.error('error occured', err);
+  logger.error('error occured', err);
   res.status(500);
   res.json({
     'code': err.code,
@@ -10,7 +12,7 @@ function requestErrorHandler(err, req, res, next) {
 }
 
 function uncaughtExceptionHandler(err){
-  console.error('Error caught in uncaughtException event:', err);
+  logger.error('Error caught in uncaughtException event:', err);
 }
 
 module.exports.requestErrorHandler = requestErrorHandler;

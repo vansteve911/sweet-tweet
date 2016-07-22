@@ -4,7 +4,7 @@ const fs = require('fs'),
 	ApiError = require('../common/apiError'),
 	ErrorCode = require('../common/ErrorCode'),
 	UserBasic = require('../models/userBasic'),
-	hashUtils = require('../utils/hashUtils'),
+	cryptUtils = require('../utils/cryptUtils'),
 	ub = new UserBasic();
 
 function UserService() {}
@@ -18,7 +18,8 @@ UserService.prototype.create = function(data) {
 		let id, account = data.account,
 			password = data.password,
 			nickname = data.nickname;
-		if (!(typeof account === 'string' && account)) {
+		if (!isValidAccount(account)) {
+			// account must be email
 			return reject(new ApiError('empty account!', ErrorCode.BAD_REQUEST));
 		} else if (!(typeof password === 'string' && password)) {
 			return reject(new ApiError('empty password!', ErrorCode.BAD_REQUEST));
@@ -27,14 +28,14 @@ UserService.prototype.create = function(data) {
 		}
 		self.checkNickname(nickname)
 			.then(() => {
-				id = genUserID(data);
+				id = genUserID(account);
 				if (!id) {
 					return reject(new ApiError('genUserID failed!', ErrorCode.BAD_REQUEST));
 				}
 				data.id = id;
 				data.create_time = new Date();
 				// encrypt password
-				data.password = hashUtils.encryptPassword(password);
+				data.password = cryptUtils.encryptPassword(password);
 				ub.add(data)
 					.then(() => {
 						resolve(parseToView(data));
@@ -45,13 +46,29 @@ UserService.prototype.create = function(data) {
 	});
 }
 
+UserService.prototype.authenticate = function(account, password) {
+	let error = new ApiError('wrong account or password', ErrorCode.UNAUTHORIZED);
+	return new Promise((resolve, reject) => {
+		if (isValidAccount(account) && password) {
+			ub.authenticate(genUserID(account), cryptUtils.encryptPassword(password))
+				.then((userBasic) => {
+					resolve(userBasic);
+				})
+				.catch(() => {
+					reject(error);
+				});
+		} else {
+			reject(error);
+		}
+	});
+}
+
 UserService.prototype.checkNickname = function(nickname) {
 	return new Promise((resolve, reject) => {
 		if (nickname) {
 			ub.getByNickname(nickname)
 				.then((res) => {
 					if (res) {
-						console.log('same name guy:', res)
 						return reject(new ApiError('your nickname is duplicated with user ' + res.id, ErrorCode.CONFLICT));
 					} else {
 						resolve(true);
@@ -85,17 +102,18 @@ UserService.prototype.checkRemark = function(remark) {
 }
 
 UserService.prototype.get = function(id) {
-	let self = this;
+	let self = this,
+		error = new ApiError('user not exists!', ErrorCode.NOT_FOUND);
 	return new Promise((resolve, reject) => {
 		if (!parseInt(id)) {
-			return reject(new ApiError('not exists!', ErrorCode.NOT_FOUND));
+			return reject(error);
 		}
 		ub.get(id)
 			.then((data) => {
 				if (data) {
 					resolve(parseToView(data));
 				} else {
-					reject(new ApiError('not exists!', ErrorCode.NOT_FOUND));
+					reject(error);
 				}
 			})
 			.catch(reject);
@@ -103,10 +121,11 @@ UserService.prototype.get = function(id) {
 }
 
 UserService.prototype.update = function(id, data) {
-	let self = this;
+	let self = this,
+		error = new ApiError('user not exists!', ErrorCode.NOT_FOUND);
 	return new Promise((resolve, reject) => {
 		if (!data) {
-			return reject(new ApiError('empty args!', ErrorCode.BAD_REQUEST));
+			return reject(error);
 		}
 		ub.get(id)
 			.then((userBasic) => {
@@ -127,7 +146,6 @@ UserService.prototype.update = function(id, data) {
 					if (checkPromises) {
 						Promise.all(checkPromises)
 							.then((results) => {
-								console.log('check results: ', results);
 								ub.update(userBasic)
 									.then(resolve)
 									.catch(reject);
@@ -135,18 +153,22 @@ UserService.prototype.update = function(id, data) {
 							.catch(reject);
 					}
 				} else {
-					return reject(new ApiError('not exists!', ErrorCode.NOT_FOUND));
+					return reject(error);
 				}
 			})
-			.catch(reject);
+			.catch(new ApiError('update failed', ErrorCode.FAILED));
 	});
 }
 
-function genUserID(user) {
-  if (user && user.account) {
-    return hashUtils.genID('user/' + user.account);
-  }
-  return null;
+function genUserID(account) {
+	if (account) {
+		return cryptUtils.genID('user/' + account);
+	}
+	return null;
+}
+
+function isValidAccount(account) {
+	return /^[\w\-_]+@([\w\-_]+\.)+\w+$/.test(account);
 }
 
 function parseToView(model) {
@@ -156,4 +178,4 @@ function parseToView(model) {
 	return model;
 }
 
-module.exports = UserService;
+module.exports = new UserService();

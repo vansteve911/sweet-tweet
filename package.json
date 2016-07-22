@@ -12,6 +12,7 @@
     "express-session": "1.14.0",
     "morgan": "1.7.0",
     "log4js": "0.6.0",
+    "log4js-extend": "0.1.2",
     "body-parser": "1.15.2",
     "request": "2.72.0",
     "connect-multiparty": "2.0.0",

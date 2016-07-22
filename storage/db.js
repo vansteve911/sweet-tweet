@@ -1,5 +1,6 @@
 'use strict';
 const pg = require('pg'),
+  logger = require('../logger'),
   config = require('../config');
 
 function DB() {}
@@ -10,7 +11,7 @@ let _connect = function() {
     pool.connect(function(err, client, done) {
       done();
       if (err) {
-        console.error('connect db failed', err.stack);
+        logger.error('connect db failed', err.stack);
         reject(err);
       } else {
         resolve({
@@ -20,7 +21,7 @@ let _connect = function() {
       }
     });
     pool.on('error', function(err, client) {
-      console.error('connect db error', err.stack);
+      logger.error('connect db error', err.stack);
       reject(err);
     });
   });
@@ -47,7 +48,7 @@ DB.prototype.query = function(args) {
         client.query(sql, params, function(err, res) {
           done(); // release connection
           if (err) {
-            console.error('query error!', err.stack);
+            logger.error('query error!', err.stack);
             reject(err);
           } else {
             resolve(res);
@@ -86,7 +87,7 @@ DB.prototype.parseResultRows = function(result) {
   return new Promise(function(resolve, reject) {
     if (!result || !result.rows || !Array.isArray(result.rows)) {
       let err = new Error('empty result!');
-      console.error(err.message, err.stack);
+      logger.error(err.message, err.stack);
       reject(err);
     } else {
       resolve(result.rows);
@@ -100,7 +101,7 @@ DB.prototype.parseResultRow = function(result) {
       resolve(null);
     } else {
       if(result.rows.length > 1){
-        console.error('get multiple line results!');
+        logger.error('get multiple line results!');
       }
       resolve(result.rows[0]);
     }

@@ -1,9 +1,9 @@
 'use strict';
-const fs = require('fs'),
-	util = require('util'),
+const util = require('util'),
 	DB = require('../storage/db'),
 	RedisCache = require('../storage/cache'),
 	config = require('../config'),
+  logger = require('../logger'),
 	ApiError = require('../common/apiError'),
 	ErrorCode = require('../common/errorCode');
 
@@ -28,7 +28,7 @@ function _parseDate(date) {
 		try {
 			res = new Date()
 		} catch (err) {
-			console.error(err);
+			logger.error(err);
 			res = new Date();
 		}
 		return res;
@@ -42,14 +42,14 @@ UserBasic.prototype.add = function(data) {
 		if (data) {
 			self.dbStore.create(data)
 				.then((user) => {
-					console.log('user:', user);
+					logger.debug('user:', user);
 					resolve(user);
 					self.cacheStore.setUser(user)
 						.then((res) => {
-							console.log('add user success!', user);
+							logger.debug('add user success!', user);
 						})
 						.catch((err) => {
-							console.error('failed to add user basic', err.stack);
+							logger.error('failed to add user basic', err.stack);
 						});
 				})
 				.catch(reject);
@@ -69,10 +69,10 @@ UserBasic.prototype.update = function(data) {
 					resolve(user);
 					self.cacheStore.setUser(user)
 						.then((res) => {
-							console.log('update user success!', user);
+							logger.debug('update user success!', user);
 						})
 						.catch((err) => {
-							console.error('failed to update user basic', err.stack);
+							logger.error('failed to update user basic', err.stack);
 						});
 				})
 				.catch(reject);
@@ -97,10 +97,10 @@ UserBasic.prototype.get = function(id) {
 								if (user) {
 									self.cacheStore.setUser(user)
 										.then((res) => {
-											console.log('add user basic to cache success!', user);
+											logger.debug('add user basic to cache success!', user);
 										})
 										.catch((err) => {
-											console.error('' + err, err.stack);
+											logger.error('' + err, err.stack);
 										});
 								}
 							});
@@ -111,6 +111,26 @@ UserBasic.prototype.get = function(id) {
 			reject(new Error('invalid id: ' + id));
 		}
 	});
+}
+
+UserBasic.prototype.authenticate = function(id, password) {
+  let self = this;
+  return new Promise((resolve, reject)=>{
+    if (id = parseInt(id)) {
+      self.dbStore.get(id, true)
+        .then((user)=>{
+          if(user && user.password === password){
+            delete user.password;
+            resolve(user);
+          } else {
+            reject();
+          }
+        })
+        .catch(reject);
+    }else {
+      reject(new Error('invalid id: ' + id));
+    }
+  });
 }
 
 UserBasic.prototype.getByNickname = function(nickname) {
@@ -183,7 +203,7 @@ DbStore.prototype.create = function(data) {
 	return new Promise((resolve, reject) => {
 		self.save(args)
 			.then(function(result) {
-				console.log('create user result: ' + result);
+				logger.debug('create user result: ' + result);
 				if (result <= 0) {
 					reject(new Error('create user failed'));
 				} else {
@@ -207,7 +227,7 @@ DbStore.prototype.update = function(data) {
 				if (result <= 0) {
 					reject(new Error('update user failed'));
 				} else {
-					console.log('after update user: ', user);
+					logger.debug('after update user: ', user);
 					resolve(removeHiddenFields(user));
 				}
 			})
@@ -215,7 +235,7 @@ DbStore.prototype.update = function(data) {
 	});
 }
 
-DbStore.prototype.get = function(id) {
+DbStore.prototype.get = function(id, withPassword) {
 	let self = this,
 		args = {
 			sql: self.sqls.select,
@@ -224,7 +244,7 @@ DbStore.prototype.get = function(id) {
 	return new Promise((resolve, reject) => {
 		self.select(args)
 			.then((res) => {
-				resolve(removeHiddenFields(res));
+      resolve(removeHiddenFields(res, !withPassword));
 			})
 			.catch(reject);
 	});
@@ -245,13 +265,13 @@ DbStore.prototype.getByNickname = function(nickname) {
 	});
 }
 
-function removeHiddenFields(data) {
-	console.log('before remove:', data);
+function removeHiddenFields(data, removePassword) {
 	if (data) {
 		delete data._id;
-		delete data.password;
+    if(removePassword){
+      delete data.password;
+    }
 	}
-	console.log('after remove:', data);
 	return data;
 }
 

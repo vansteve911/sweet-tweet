@@ -40,10 +40,10 @@ QiniuUtils.prototype.uploadFile = function(upToken, key, filePath) {
   qiniu.io.putFile(upToken, key, filePath, extra, function(err, ret) {
     if (!err) {
       // 上传成功， 处理返回值
-      console.log(ret.hash, ret.key, ret.persistentId);
+      logger.debug(ret.hash, ret.key, ret.persistentId);
     } else {
       // 上传失败， 处理返回代码
-      console.log(err);
+      logger.debug(err);
     }
   });
 }

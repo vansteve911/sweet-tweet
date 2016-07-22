@@ -1,9 +1,10 @@
 'use strict';
-const Tweet = require('../models/tweet');
+const Tweet = require('../models/tweet'),
+  logger = require('../logger');
 
 // DB.query('SELECT $1::date', [new Date()]).then(db.parseResultRows).then(function(result){
 //   for(let r of result){
-//     console.log(r);
+//     logger.debug(r);
 //   }
 // });
 
@@ -18,10 +19,10 @@ let tweet = new Tweet({
 
 let db = new Tweet.dbStore();
 
-db.create(tweet).then(console.log, console.error);
+db.create(tweet).then(logger.debug, logger.error);
 // db.selectById(1).then(function(result){
 //   result.content = '嘿嘿嘿';
-//   // console.log('sdsd'+result.dbStore.update);
-//   db.update(result).then(console.log, console.error);
+//   // logger.debug('sdsd'+result.dbStore.update);
+//   db.update(result).then(logger.debug, logger.error);
 // });
-db.selectListByTime(new Date(), 3).then(console.log);
+db.selectListByTime(new Date(), 3).then(logger.debug);

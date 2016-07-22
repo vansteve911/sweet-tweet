@@ -1,5 +1,6 @@
 'use strict';
 const redis = require('redis'),
+  logger = require('../logger'),
   config = require('../config');
 // TODO
 
@@ -11,10 +12,10 @@ RedisCache.prototype.activateClient = function() {
     try{
       let client = redis.createClient(config.redis);
       client.on('error', function(err) {
-        console.error('redis client error!', err.stack);
+        logger.error('redis client error!', err.stack);
       });
       client.on('end', function() {
-        console.log('redis client quit');
+        logger.debug('redis client quit');
       });
       resolve(client);
     } catch(err){
@@ -30,7 +31,7 @@ RedisCache.prototype.get = function(args) {
       self.activateClient().then((client)=>{
         client.get(key, function(err, res) {
           if (err) {
-            console.error('failed to get key: ' + key, err.message, err.stack);
+            logger.error('failed to get key: ' + key, err.message, err.stack);
             reject(err);
           } else {
             resolve(res);
@@ -54,7 +55,7 @@ RedisCache.prototype.set = function (args) {
       .then((client)=>{
         client.set(key, value, (err, res) => {
           if (err) {
-            console.error('failed to set, key: ' + key + ', value: ' + value, err.message, err.stack);
+            logger.error('failed to set, key: ' + key + ', value: ' + value, err.message, err.stack);
             reject(err);
           } else {
             resolve(res === 'OK');
@@ -78,7 +79,7 @@ RedisCache.prototype.del = function (args) {
       self.activateClient().then((client)=>{
         client.del(key, (err, res) => {
           if (err) {
-            console.error('failed to del, key: ' + key, err.message, err.stack);
+            logger.error('failed to del, key: ' + key, err.message, err.stack);
             reject(err);
           } else {
             resolve(res);
@@ -101,7 +102,7 @@ RedisCache.prototype.expire = function (args) {
       self.activateClient().then((client)=>{
         client.expire(key, seconds, (err, res) => {
           if (err) {
-            console.error('failed to expire, key: ' + key + ', seconds: ' + seconds, err.message, err.stack);
+            logger.error('failed to expire, key: ' + key + ', seconds: ' + seconds, err.message, err.stack);
             reject(err);
           } else {
             resolve(res);
@@ -128,7 +129,7 @@ RedisCache.prototype.hmset = function(args){
       self.activateClient().then((client)=>{
         client.hmset(key, params, (err, res)=> {
           if (err) {
-            console.error('failed to hmset, key: ' + key + ', map: ' + map, err.message, err.stack);
+            logger.error('failed to hmset, key: ' + key + ', map: ' + map, err.message, err.stack);
             reject(err);
           } else {
             resolve(res === 'OK');
@@ -151,7 +152,7 @@ RedisCache.prototype.hgetall = function(args) {
       self.activateClient().then((client)=>{
         client.hgetall(key, (err, res) =>{
           if (err) {
-            console.error('failed to hgetall, key: ' + key, err.message, err.stack);
+            logger.error('failed to hgetall, key: ' + key, err.message, err.stack);
             reject(err);
           } else {
             resolve(res);
@@ -175,7 +176,7 @@ RedisCache.prototype.zadd = function(args) {
           let score = parseFloat(scoreMap[member]);
           if (!score) {
             let err = new Error('failed to parse float score: ' + scoreMap.member);
-            console.error(err);
+            logger.error(err);
             reject(err);
             return;
           }
@@ -183,7 +184,7 @@ RedisCache.prototype.zadd = function(args) {
         }
         client.zadd(key, params, function(err, res) {
           if (err) {
-            console.error('failed to zadd, key: ' + key + ', scoreMap: ' + scoreMap, err.message, err.stack);
+            logger.error('failed to zadd, key: ' + key + ', scoreMap: ' + scoreMap, err.message, err.stack);
             reject(err);
           } else {
             resolve(res);
@@ -221,7 +222,7 @@ RedisCache.prototype.zrangebyscore = function(args) {
       }
       let callback = (err, res) => {
         if (err) {
-          console.error('failed to zadd, key: ' + key + ', params: ' + params, err.message, err.stack);
+          logger.error('failed to zadd, key: ' + key + ', params: ' + params, err.message, err.stack);
           reject(err);
         } else {
           resolve(res);
@@ -248,7 +249,7 @@ RedisCache.prototype.parseObjectResult = function(result) {
       try {
         resolve(JSON.parse(result));
       } catch (err) {
-        console.error('parseObjectResult err: ', err);
+        logger.error('parseObjectResult err: ', err);
         reject(err);
       }
     } else {

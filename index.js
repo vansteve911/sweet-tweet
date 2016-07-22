@@ -45,5 +45,6 @@ app.use(errorHandler.requestErrorHandler);
 
 // start server
 app.listen(config.port, function() {
-  console.log('Node app is running on port', config.port);
+  logger.info('Node app is running on port', config.port);
+  logger.debug('adfasfas');
 });

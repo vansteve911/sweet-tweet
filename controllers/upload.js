@@ -1,14 +1,12 @@
 'use strict';
 
-const util = require('util');
-const express = require('express');
-const multipart = require('connect-multiparty');
-
-const qiniuUtils = require('../utils/qiniuUtils.js');
-const httpUtils = require('../utils/httpUtils.js');
-const apiResult = require('../apiResult.js')
-
-const router = express.Router();
+const util = require('util'),
+  logger = require('../logger'),
+  router = require('express').Router(),
+  multipart = require('connect-multiparty'),
+  qiniuUtils = require('../utils/qiniuUtils.js'),
+  httpUtils = require('../utils/httpUtils.js'),
+  apiResult = require('../apiResult.js');
 
 router.get('/', function(req, res) {
   apiResult(res);
@@ -24,8 +22,8 @@ router.get('/token', function(req, res) {
 });
 
 router.post('/testUploadPic', multipart(), function(req, res) {
-  console.log(req.body);
-  console.log(req.files);
+  logger.debug(req.body);
+  logger.debug(req.files);
   apiResult(res);
 });
 
@@ -38,7 +36,7 @@ router.post('/uploadFromUrl', function(req, res, next) {
     let key = qiniuUtils.generateUploadedKey(getFilePathName(url));
     let token = qiniuUtils.generateUploadToken(key);
     if (token) {
-      console.log(util.format('begin uploading file [%s] to qiniu', url));
+      logger.debug(util.format('begin uploading file [%s] to qiniu', url));
       httpUtils.doUploadFileFromUrl(url, 'http://upload.qiniu.com/', {
         key: key,
         token: token
@@ -48,7 +46,7 @@ router.post('/uploadFromUrl', function(req, res, next) {
         } else if (!data) {
           next(new Error('empty response from upload url'), req, res);
         } else {
-          console.log(util.format('file [%s] upload success! response from qiniu: %s', url, data));
+          logger.debug(util.format('file [%s] upload success! response from qiniu: %s', url, data));
           let respJson = JSON.parse(data);
           apiResult(res, respJson);
         }
