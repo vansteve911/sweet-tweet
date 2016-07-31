@@ -6,7 +6,8 @@ const crypto = require('crypto'),
 
   PASSWORD_KEY = fs.readFileSync(config.security.passwordKey).toString('ascii'),
   PRIVATE_KEY = fs.readFileSync(config.security.serverKey).toString(),
-  PUBLIC_KEY = fs.readFileSync(config.security.certKey).toString(),
+  PUBLIC_KEY = fs.readFileSync(config.security.clientKey).toString(),
+  PUBLIC_CERT = fs.readFileSync(config.security.clientCert).toString(),
 
   MODULUS = 1024,
   MAX_BITS = MODULUS / 8,
@@ -31,7 +32,7 @@ module.exports.genNonce = function() {
 }
 
 module.exports.genRnd = function() {
-  return crypto.randomBytes(128).toString('hex');
+  return crypto.randomBytes(64).toString('base64');
 }
 
 // signature
@@ -51,12 +52,28 @@ module.exports.verifyClientSignature = function(text, sign) {
   return verifySign(text, sign, true);
 }
 
+module.exports.genDigest = function(text){
+  if (text && typeof text === 'string') {
+    return crypto.createHash('SHA1').update(text).digest('hex');
+  }
+  return null;
+}
+
+module.exports.verifyDigest = function(text, digest){
+  if (text && typeof text === 'string' && digest && typeof digest === 'string') {
+    let _digest = crypto.createHash('SHA1').update(text).digest('hex');
+    console.log(digest, _digest);
+    return digest === _digest;
+  }
+  return false;
+}
+
 module.exports.convertToOriginalStr = function(obj) {
-  if (!obj && typeof obj === 'object') {
+  if (obj && typeof obj === 'object') {
     let keys = [],
       str = '';
     for (let k of Object.keys(obj)) {
-      keys.push[k];
+      keys.push(k);
     }
     keys.sort().forEach((k) => {
       str += obj[k] + '&';
@@ -69,7 +86,7 @@ module.exports.convertToOriginalStr = function(obj) {
 function genSign(input, usePrivateKey) {
   if (input && typeof input === 'string') {
     let sign = crypto.createSign('RSA-SHA256'),
-      key = usePrivateKey ? PRIVATE_KEY : PUBLIC_KEY;
+      key = usePrivateKey ? PRIVATE_KEY : PUBLIC_CERT;
     sign.update(input);
     return sign.sign(key, 'hex');
   }
@@ -79,7 +96,7 @@ function genSign(input, usePrivateKey) {
 function verifySign(text, sign, usePrivateKey) {
   if (text && typeof text === 'string' && sign && typeof sign === 'string') {
     let verify = crypto.createVerify('RSA-SHA256'),
-      key = usePrivateKey ? PRIVATE_KEY : PUBLIC_KEY;
+      key = usePrivateKey ? PRIVATE_KEY : PUBLIC_CERT;
     verify.update(text);
     return verify.verify(key, sign, 'hex');
   }
@@ -153,8 +170,8 @@ function rsaDecrypt(input, isPublic) {
 module.exports.aesEncrypt = function(input, key) {
   if (input && typeof input === 'string' && key && typeof key === 'string') {
     let cipher = crypto.createCipher('aes-256-cbc', key);
-    let encrypted = cipher.update(input, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
+    let encrypted = cipher.update(input, 'utf8', 'base64');
+    encrypted += cipher.final('base64');
     return encrypted;
   }
   return null;
@@ -163,7 +180,7 @@ module.exports.aesEncrypt = function(input, key) {
 module.exports.aesDecrypt = function(input, key) {
   if (input && typeof input === 'string' && key && typeof key === 'string') {
     let decipher = crypto.createDecipher('aes-256-cbc', key);
-    let decrypted = decipher.update(input, 'hex', 'utf8');
+    let decrypted = decipher.update(input, 'base64', 'utf8');
     decrypted += decipher.final('utf8');
     return decrypted;
   }

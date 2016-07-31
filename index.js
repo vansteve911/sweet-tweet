@@ -43,8 +43,18 @@ app.use('/api/user', userRouter);
 // config error handlers
 app.use(errorHandler.requestErrorHandler);
 
-// start server
-app.listen(config.port, function() {
-  logger.info('Node app is running on port', config.port);
-  logger.debug('adfasfas');
+// chat server
+let chatServer = require('http').Server(app),
+  ChatService = require('./services/chatService'),
+  chatService = new ChatService(chatServer);
+let ChatManager = require('./services/chatManager'),
+  chatManager = new ChatManager(chatService);
+
+// start web server
+// app.listen(config.port, function() {
+//   logger.info('Node app is running on port ' + config.port);
+// });
+
+chatServer.listen(config.socketPort, function(){
+  logger.info('chat server is running on port ' + config.socketPort);
 });

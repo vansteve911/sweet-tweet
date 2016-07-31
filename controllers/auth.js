@@ -5,7 +5,7 @@ const router = require('express').Router(),
 	auth = require('../middlewares/auth'),
 	authService = require('../services/authService');
 
-router.post('/login', reqSession, function(req, res) {
+router.all('/login', reqSession, function(req, res) {
 	authService.login({
 			account: req.param('account'),
 			password: req.param('password')

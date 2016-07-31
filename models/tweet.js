@@ -3,7 +3,7 @@ const util = require('util'),
   logger = require('../logger'),
 	DB = require('../storage/db'),
 	RedisCache = require('../storage/cache'),
-	hashUtils = require('../utils/hashUtils.js');
+	cryptUtils = require('../utils/cryptUtils.js');
 
 function Tweet(data) {
 	data = data || {};

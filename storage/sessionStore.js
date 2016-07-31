@@ -56,7 +56,7 @@ module.exports = function(session) {
       })
       .then(self.cacheStore.parseObjectResult)
       .then((res) => {
-        logger.debug('get session ok: key: ' + sessKey + ', value: ' + res); // 
+        logger.debug('get session: key: ' + sessKey + ', value: ', res); // 
         callback(null, res);
       })
       .catch((err) => {

@@ -115,6 +115,7 @@ UserBasic.prototype.get = function(id) {
 
 UserBasic.prototype.authenticate = function(id, password) {
   let self = this;
+  logger.debug(id, password);
   return new Promise((resolve, reject)=>{
     if (id = parseInt(id)) {
       self.dbStore.get(id, true)
@@ -188,7 +189,7 @@ UserBasic.prototype.dbStore = new DbStore();
 
 DbStore.prototype.sqls = {
 	create: 'INSERT INTO user_basic (id, type, status, account, password, nickname, avatar, create_time, remark) VALUES ($1::bigint,  $2::smallint, $3::smallint, $4::text, $5::text, $6::text, $7::text, $8::date, $9::text)',
-	update: 'UPDATE user_basic SET type=$2::smallint, status=$3::smallint, account=$4::text, password=$5::text, nickname=$6::text, avatar=$7::text, create_time=$8::date, remark=$9::text WHERE id=$1::bigint',
+	update: 'UPDATE user_basic SET type=$2::smallint, status=$3::smallint, account=$4::text, nickname=$5::text, avatar=$6::text, create_time=$7::date, remark=$8::text WHERE id=$1::bigint',
 	select: 'SELECT * FROM user_basic WHERE id=$1::bigint',
 	selectByNickname: 'SELECT * FROM user_basic WHERE nickname=$1::text'
 }
@@ -219,7 +220,7 @@ DbStore.prototype.update = function(data) {
 		user = new UserBasic(data),
 		args = {
 			sql: self.sqls.update,
-			params: [user.id, user.type, user.status, user.account, user.password, user.nickname, user.avatar, user.create_time, user.remark]
+			params: [user.id, user.type, user.status, user.account, user.nickname, user.avatar, user.create_time, user.remark]
 		};
 	return new Promise((resolve, reject) => {
 		self.save(args)

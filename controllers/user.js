@@ -9,9 +9,9 @@ const router = require('express').Router(),
 	auth = require('../middlewares/auth');
 
 // get
-router.get('/me', reqSession, auth.userSession, function(req, res) {
+router.get('/me', reqSession, auth.userSession, auth.userAuth, function(req, res) {
 	if (req.user) {
-		apiResult(res, data);
+		apiResult(res, req.user);
 	} else {
 		apiResult(res, null, new ApiError('user not login', ErrorCode.UNAUTHORIZED));
 	}
@@ -25,7 +25,6 @@ router.get('/:id', function(req, res) {
 		.catch((err) => {
 			apiResult(res, null, err);
 		});
-}
 });
 
 router.get('/verify/nickname', function(req, res) {

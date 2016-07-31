@@ -1,5 +1,6 @@
 module.exports = {
 	port: (process.env.PORT || 5000),
+	socketPort: (process.env.SOCKET_IO_PORT || 5001),
 	accessLog: {
 		path: __dirname + '/logs/access.log'
 	},
@@ -38,7 +39,8 @@ module.exports = {
 	},
 	security: {
 		passwordKey: __dirname + '/keys/password.pem',
-		serverKey: __dirname + '/keys/server.pem',
-		certKey: __dirname + '/keys/cert.pem'
+		serverKey: __dirname + '/keys/server.key',
+		clientKey: __dirname + '/keys/client.key',
+		clientCert: __dirname + '/keys/client.pem'
 	}
 };

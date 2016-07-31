@@ -1,0 +1,30 @@
+<!DOCTYPE html5>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>io test</title>
+</head>
+<script src="/static/js/socket.io-1.4.5.js"></script>
+<script src="/static/js/main.js"></script>
+<script src="/static/js/chat.js"></script>
+<script>
+  var chatClient = new ChatClient('/');
+  chatClient.on(Constants.chat.chatEvent.ONLINE, function(data){
+    console.log('log in success!', data);
+  });
+  chatClient.on(Constants.chat.chatEvent.RECV, function(data){
+    console.log('received message: ', data);
+  })
+  chatClient.on(Constants.chat.chatEvent.OFFLINE, function(data){
+    console.log('chatClient offline: ', data);
+  })
+  // 3964845081706182
+  
+  // chatClient.emit(new Event('abc'), {a: 1});
+
+</script>
+
+<body>
+  
+</body>
+</html>

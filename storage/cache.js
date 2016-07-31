@@ -8,8 +8,8 @@ function RedisCache() {}
 
 RedisCache.prototype.activateClient = function() {
   let self = this;
-  return new Promise((resolve, reject)=>{
-    try{
+  return new Promise((resolve, reject) => {
+    try {
       let client = redis.createClient(config.redis);
       client.on('error', function(err) {
         logger.error('redis client error!', err.stack);
@@ -18,17 +18,18 @@ RedisCache.prototype.activateClient = function() {
         logger.debug('redis client quit');
       });
       resolve(client);
-    } catch(err){
+    } catch (err) {
       reject(err);
     }
   })
 }
 
 RedisCache.prototype.get = function(args) {
-  let self = this, key;
+  let self = this,
+    key;
   return new Promise((resolve, reject) => {
-    if(args && (key = args.key)){
-      self.activateClient().then((client)=>{
+    if (args && (key = args.key)) {
+      self.activateClient().then((client) => {
         client.get(key, function(err, res) {
           if (err) {
             logger.error('failed to get key: ' + key, err.message, err.stack);
@@ -37,7 +38,7 @@ RedisCache.prototype.get = function(args) {
             resolve(res);
           }
           client.quit();
-        }).catch((err)=>{
+        }).catch((err) => {
           reject(err);
         });
       })
@@ -47,36 +48,37 @@ RedisCache.prototype.get = function(args) {
   });
 }
 
-RedisCache.prototype.set = function (args) {
-  let self = this, key, value;
+RedisCache.prototype.set = function(args) {
+  let self = this,
+    key, value;
   return new Promise(function(resolve, reject) {
     if (args && (key = args.key) && (value = args.value)) {
       self.activateClient()
-      .then((client)=>{
-        client.set(key, value, (err, res) => {
-          if (err) {
-            logger.error('failed to set, key: ' + key + ', value: ' + value, err.message, err.stack);
-            reject(err);
-          } else {
-            resolve(res === 'OK');
-          }
+        .then((client) => {
+          client.set(key, value, (err, res) => {
+            if (err) {
+              logger.error('failed to set, key: ' + key + ', value: ' + value, err.message, err.stack);
+              reject(err);
+            } else {
+              resolve(res === 'OK');
+            }
+          });
+          client.quit();
+        }).catch((err) => {
+          reject(err);
         });
-        client.quit();
-      }
-      ).catch((err)=>{
-        reject(err);
-      });
     } else {
       reject(new Error('empty args' + args));
     }
   });
 }
 
-RedisCache.prototype.del = function (args) {
-  let self = this, key;
+RedisCache.prototype.del = function(args) {
+  let self = this,
+    key;
   return new Promise(function(resolve, reject) {
     if (args && (key = args.key)) {
-      self.activateClient().then((client)=>{
+      self.activateClient().then((client) => {
         client.del(key, (err, res) => {
           if (err) {
             logger.error('failed to del, key: ' + key, err.message, err.stack);
@@ -86,7 +88,7 @@ RedisCache.prototype.del = function (args) {
           }
         });
         client.quit();
-      }).catch((err)=>{
+      }).catch((err) => {
         reject(err);
       });
     } else {
@@ -95,11 +97,12 @@ RedisCache.prototype.del = function (args) {
   });
 }
 
-RedisCache.prototype.expire = function (args) {
-  let self = this, key, seconds;
+RedisCache.prototype.expire = function(args) {
+  let self = this,
+    key, seconds;
   return new Promise(function(resolve, reject) {
     if (args && (key = args.key) && (seconds = parseInt(seconds))) {
-      self.activateClient().then((client)=>{
+      self.activateClient().then((client) => {
         client.expire(key, seconds, (err, res) => {
           if (err) {
             logger.error('failed to expire, key: ' + key + ', seconds: ' + seconds, err.message, err.stack);
@@ -109,7 +112,7 @@ RedisCache.prototype.expire = function (args) {
           }
         });
         client.quit();
-      }).catch((err)=>{
+      }).catch((err) => {
         reject(err);
       });
     } else {
@@ -118,16 +121,17 @@ RedisCache.prototype.expire = function (args) {
   });
 }
 
-RedisCache.prototype.hmset = function(args){
-  let self = this, key, map;
+RedisCache.prototype.hmset = function(args) {
+  let self = this,
+    key, map;
   return new Promise((resolve, reject) => {
     if (args && (key = args.key) && (map = args.map)) {
       let params = [];
       for (let k of Object.keys(map)) {
         params.push(k, map[k]);
       }
-      self.activateClient().then((client)=>{
-        client.hmset(key, params, (err, res)=> {
+      self.activateClient().then((client) => {
+        client.hmset(key, params, (err, res) => {
           if (err) {
             logger.error('failed to hmset, key: ' + key + ', map: ' + map, err.message, err.stack);
             reject(err);
@@ -136,7 +140,7 @@ RedisCache.prototype.hmset = function(args){
           }
         });
         client.quit();
-      }).catch((err)=>{
+      }).catch((err) => {
         reject(err);
       });
     } else {
@@ -146,11 +150,12 @@ RedisCache.prototype.hmset = function(args){
 }
 
 RedisCache.prototype.hgetall = function(args) {
-  let self = this, key;
-  return new Promise((resolve, reject)=> {
+  let self = this,
+    key;
+  return new Promise((resolve, reject) => {
     if (args && (key = args.key)) {
-      self.activateClient().then((client)=>{
-        client.hgetall(key, (err, res) =>{
+      self.activateClient().then((client) => {
+        client.hgetall(key, (err, res) => {
           if (err) {
             logger.error('failed to hgetall, key: ' + key, err.message, err.stack);
             reject(err);
@@ -159,7 +164,7 @@ RedisCache.prototype.hgetall = function(args) {
           }
         });
         client.quit();
-      });  
+      });
     } else {
       reject(new Error('empty args' + args));
     }
@@ -167,35 +172,35 @@ RedisCache.prototype.hgetall = function(args) {
 }
 
 RedisCache.prototype.zadd = function(args) {
-  let self = this, key, scoreMap;
+  let self = this,
+    key, scoreMap;
   return new Promise((resolve, reject) => {
     if (args && (key = args.key) && (scoreMap = args.scoreMap)) {
-      self.activateClient().then((client)=>{
-        let params = [];
-        for (let member of Object.keys(scoreMap)) {
-          let score = parseFloat(scoreMap[member]);
-          if (!score) {
-            let err = new Error('failed to parse float score: ' + scoreMap.member);
-            logger.error(err);
-            reject(err);
-            return;
+      self.activateClient().then((client) => {
+          let params = [];
+          for (let member of Object.keys(scoreMap)) {
+            let score = parseFloat(scoreMap[member]);
+            if (!score) {
+              let err = new Error('failed to parse float score: ' + scoreMap.member);
+              logger.error(err);
+              reject(err);
+              return;
+            }
+            params.push(score, member); // score member
           }
-          params.push(score, member); // score member
-        }
-        client.zadd(key, params, function(err, res) {
-          if (err) {
-            logger.error('failed to zadd, key: ' + key + ', scoreMap: ' + scoreMap, err.message, err.stack);
-            reject(err);
-          } else {
-            resolve(res);
-          }
+          client.zadd(key, params, function(err, res) {
+            if (err) {
+              logger.error('failed to zadd, key: ' + key + ', scoreMap: ' + scoreMap, err.message, err.stack);
+              reject(err);
+            } else {
+              resolve(res);
+            }
+          });
+          client.quit();
+        })
+        .catch((err) => {
+          reject(err);
         });
-        client.quit();
-
-      })
-      .catch((err)=>{
-        reject(err);
-      });  
     } else {
       reject(new Error('empty args' + args));
     }
@@ -203,8 +208,9 @@ RedisCache.prototype.zadd = function(args) {
 }
 
 RedisCache.prototype.zrangebyscore = function(args) {
-  let self = this, key, lower, upper, count, offset, rev;
-  return new Promise((resolve, reject) =>{
+  let self = this,
+    key, lower, upper, count, offset, rev;
+  return new Promise((resolve, reject) => {
     if (args && (key = args.key)) {
       lower = args.lower || Number.MIN_SAFE_INTEGER;
       upper = args.upper || Number.MAX_SAFE_INTEGER;
@@ -228,7 +234,7 @@ RedisCache.prototype.zrangebyscore = function(args) {
           resolve(res);
         }
       }
-      self.activateClient().then((client)=>{
+      self.activateClient().then((client) => {
         if (rev) {
           client.zrevrangebyscore(key, params, callback);
         } else {
@@ -241,6 +247,97 @@ RedisCache.prototype.zrangebyscore = function(args) {
     }
   });
 }
+
+RedisCache.prototype.lpush = function(args) {
+  let self = this,
+    key, value;
+  return new Promise((resolve, reject) => {
+    if (args && (key = args.key) && (value = args.value)) {
+      self.activateClient()
+        .then((client) => {
+          client.lpush(key, value, (err, res) => {
+            if (err) {
+              logger.error('failed to lpush, key: ' + key + ', value: ' + value, err.message, err.stack);
+              reject(err);
+            } else {
+              resolve(res);
+            }
+          });
+          client.quit();
+        });
+    } else {
+      reject(new Error('empty args' + args));
+    }
+  });
+}
+
+RedisCache.prototype.rpop = function(args) {
+  let self = this,
+    key;
+  return new Promise((resolve, reject) => {
+    if (args && (key = args.key)) {
+      self.activateClient()
+        .then((client) => {
+          client.rpop(key, (err, res) => {
+            if (err) {
+              logger.error('failed to rpop, key: ' + key, err.message, err.stack);
+              reject(err);
+            } else {
+              resolve(res);
+            }
+          });
+          client.quit();
+        });
+    } else {
+      reject(new Error('empty args' + args));
+    }
+  });
+}
+
+RedisCache.prototype.publish = function(args) {
+  let self = this,
+    key, value;
+  return new Promise((resolve, reject) => {
+    if (args && (key = args.key) && (value = args.value)) {
+      self.activateClient()
+        .then((client) => {
+          client.publish(key, value, (err, res) => {
+            if (err) {
+              logger.error('failed to publish, key: ' + key + ', value: ' + value, err.message, err.stack);
+              reject(err);
+            } else {
+              resolve(res);
+            }
+          });
+          client.quit();
+        });
+    } else {
+      reject(new Error('empty args' + args));
+    }
+  });
+}
+
+RedisCache.prototype.subscribe = function(args) {
+  let self = this,
+    key;
+  return new Promise((resolve, reject) => {
+    if (args && (key = args.key)) {
+      self.activateClient().then((client) => {
+        client.on('message', function(channel, message) {
+          resolve({
+            channel: channel,
+            message: message
+          });
+          client.quit();
+        });
+        client.subscribe(key);
+      });
+    } else {
+      reject(new Error('empty args' + args));
+    }
+  });
+}
+
 
 RedisCache.prototype.parseObjectResult = function(result) {
   let self = this;
