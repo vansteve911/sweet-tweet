@@ -4,9 +4,9 @@
   <meta charset="UTF-8">
   <title>io test</title>
 </head>
-<script src="/static/js/socket.io-1.4.5.js"></script>
-<script src="/static/js/main.js"></script>
-<script src="/static/js/chat.js"></script>
+<script src="/webapp/js/socket.io-1.4.5.js"></script>
+<script src="/webapp/js/main.js"></script>
+<script src="/webapp/js/chat.js"></script>
 <script>
   var chatClient = new ChatClient('/');
   chatClient.on(Constants.chat.chatEvent.ONLINE, function(data){

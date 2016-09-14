@@ -5,8 +5,11 @@ module.exports = {
 		path: __dirname + '/logs/access.log'
 	},
 	upload: {
+		accessKey: 'aGd6tKKpFEzizLNcqIoXfWqN1aMn03kuVM0d6KxP',
+		secretKey: 'hMx5vhtmoFiWAoixuNSc6jxSKiLhBOBAOcVEuABI',
 		bucketName: 'vansteve911-com',
-		keyPrefix: 'swts/'
+		keyPrefix: 'swts/',
+		host: 'http://7xrybw.com1.z0.glb.clouddn.com/'
 	},
 	postgre: {
 		user: process.env.PGUSER || 'dbuser', //env var: PGUSER

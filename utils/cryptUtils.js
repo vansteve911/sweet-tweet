@@ -27,8 +27,9 @@ module.exports.genHash = function(input) {
   return crypto.createHash('MD5').update(input).digest('hex');
 }
 
-module.exports.genNonce = function() {
-  return crypto.createHash('MD5').update((new Date()).getTime().toString() + parseInt(Math.random() * 10000)).digest('hex');
+module.exports.genNonce = function(input) {
+  input = input || '';
+  return crypto.createHash('MD5').update(input + (new Date()).getTime().toString() + parseInt(Math.random() * 10000)).digest('hex');
 }
 
 module.exports.genRnd = function() {
@@ -52,14 +53,14 @@ module.exports.verifyClientSignature = function(text, sign) {
   return verifySign(text, sign, true);
 }
 
-module.exports.genDigest = function(text){
+module.exports.genDigest = function(text) {
   if (text && typeof text === 'string') {
     return crypto.createHash('SHA1').update(text).digest('hex');
   }
   return null;
 }
 
-module.exports.verifyDigest = function(text, digest){
+module.exports.verifyDigest = function(text, digest) {
   if (text && typeof text === 'string' && digest && typeof digest === 'string') {
     let _digest = crypto.createHash('SHA1').update(text).digest('hex');
     console.log(digest, _digest);

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= title %></title>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <style>
+    [v-cloak]{
+      display: none;
+    }
+  </style>
+  <!-- Bootstrap CSS -->
+  <link href="//cdn.bootcss.com/bootstrap/4.0.0-alpha.3/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/webapp/css/main.css" rel="stylesheet">
+</head>
+<body>
+  <nav class="navbar navbar-fixed-top navbar-dark bg-primary">
+      <a class="navbar-brand" href="/">Sweet Tweet</a>
+      <ul class="nav navbar-nav float-right">
+      <% if (user) { %>
+        <li class="nav-item">
+          <div class="nav-link">欢迎您 <%= user.nickname%> </div>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/logout">退出</a>
+        </li>
+      <% } else { %>
+        <li class="nav-item">
+          <a class="nav-link" href="/signup">注册</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" href="/login">登录</a>
+        </li>
+      <% } %>
+      </ul>
+    </nav>

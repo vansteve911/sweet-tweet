@@ -7,6 +7,8 @@ const express = require('express'),
   app = express(),
   config = require('./config'),
   logger = require('./logger'),
+  ejs = require('ejs'),
+  pageRouter = require('./controllers/page'),
   authRouter = require('./controllers/auth'),
   tweetRouter = require('./controllers/tweet'),
   uploadRouter = require('./controllers/upload'),
@@ -20,7 +22,7 @@ app.use(bodyParser.urlencoded({ // to support URL-encoded bodies
   extended: true
 }));
 // static file 
-app.use('/static', express.static('./static')); 
+app.use('/webapp', express.static('./webapp')); 
 // access log
 let accessLogStream = fs.createWriteStream(config.accessLog.path, {
   flags: 'a'
@@ -29,11 +31,12 @@ app.use(morgan('combined', {
   stream: accessLogStream
 }));
 
+app.set('view engine', 'ejs');
+app.set('views', __dirname + '/webapp/pages');
+
 // config routers
 // home
-app.get('/', function(request, response) {
-  response.send('Hello World!');
-});
+app.use('/', pageRouter);
 // upload api
 app.use('/api/auth', authRouter);
 app.use('/api/tweet', tweetRouter);

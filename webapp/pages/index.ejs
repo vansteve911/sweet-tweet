@@ -1,0 +1,140 @@
+<% include header.ejs %>
+  <div class="container">
+    <% if (user) { %>
+      <div id="myProfile" class="row" v-cloak>
+        <div class="col-xs-12 col-sm-12 placeholder">
+          <img src="{{ avatar }}" width="200" height="200" class="avatar" alt="修改" data-toggle="modal" data-target="#avatarUpload">
+          <!-- avatar upload modal start-->
+          <div class="modal fade" id="avatarUpload" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" show="{{ showAvatarModal }}">
+            <div class="modal-dialog" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span class="sr-only">取消</span>
+                  </button>
+                  <h4 class="modal-title">上传头像</h4>
+                </div>
+                <div class="modal-body">
+                  <div v-if="!image">
+                    <input type="file" @change="onFileChange">
+                  </div>
+                  <div v-else class="placeholder avatar-view">
+                    <img :src="image" />
+                    <div>
+                      <button class="placeholder" @click="removeImage">删除</button>
+                    </div>
+                  </div>
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                  <button type="button" class="btn btn-primary" @click="uploadAvatar">上传</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- avatar upload modal end-->
+          <h4>{{ nickname }}</h4>
+          <span class="text-muted">{{ remark }}</span>
+        </div>
+      </div>
+      <div class="row">
+        <a href="/chat" class="2">开始聊天</a>
+      </div>
+      <% } else { %>
+        <% } %>
+  </div>
+  <script src="/webapp/js/vue.min.js"></script>
+  <script src="/webapp/js/main.js"></script>
+  <script src="https://cdn.jsdelivr.net/vue.resource/0.9.3/vue-resource.min.js"></script>
+  <script>
+  var myProfile = new Vue({
+    el: '#myProfile',
+    data: {
+      nickname: "<%= (user && user.nickname) || '' %>",
+      avatar: "<%= (user && user.avatar) || 'data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==' %>",
+      remark: "<%= (user && user.remark) || '点击修改签名' %>",
+      image: '',
+      showAvatarModal: false
+    },
+    methods: {
+      onFileChange(e) {
+        var files = e.target.files || e.dataTransfer.files;
+        if (!files.length)
+          return;
+        this.createImage(files[0]);
+      },
+      createImage(file) {
+        var image = new Image();
+        var reader = new FileReader();
+        var vm = this;
+        reader.onload = (e) => {
+          vm.image = e.target.result;
+          vm.file = file;
+        };
+        reader.readAsDataURL(file);
+      },
+      genFormData(data) {
+        var formData = new FormData();
+        if(typeof data === 'object'){
+          for(var k of Object.keys(data)){
+            formData.append(k, data[k]);
+          }
+        }
+        return formData;
+      },
+      removeImage: function(e) {
+        this.image = '';
+      },
+      uploadAvatar: function() {
+        var vm = this;
+        if (!vm.file) {
+          return alert('没有选择任何图片');
+        }
+        vm.$http.get('/api/upload/certs', {
+            filename: vm.file.name, // TODO
+          })
+          .then((res) => {
+            return new Promise((resolve, reject) => {
+              if (!res.data) {
+                return reject(new Error('获取token失败!'));
+              }
+              var body = res.json().data;
+              body['file'] = vm.file;
+              resolve(body);
+            });
+          })
+          .then((body) => {
+            return new Promise((resolve, reject) => {
+              var url = body.url;
+              delete body.url;
+              var formData = this.genFormData(body);
+              vm.$http.post('http://upload.qiniu.com/', formData)
+                .then((res)=>{
+                  resolve(url);
+                })
+                .catch(reject);
+            });
+          })
+          .then((url) => {
+            console.debug('uploaded to url ', url);
+            alert('上传成功！');
+            // 更新
+            return vm.$http.post('/api/user/me', {
+              avatar: url
+            })
+          })
+          .then((updatedData)=>{
+            console.debug('updatedData: ', updatedData);
+            vm.avatar = updatedData.json().avatar;
+            alert('修改成功');
+            vm.showAvatarModal = false;
+          })
+          .catch((err) => {
+            alert('修改失败！' + err.message);
+            vm.showAvatarModal = false;
+          });
+      }
+    }
+  });
+  </script>
+  <% include footer.ejs %>

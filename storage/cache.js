@@ -228,7 +228,7 @@ RedisCache.prototype.zrangebyscore = function(args) {
       }
       let callback = (err, res) => {
         if (err) {
-          logger.error('failed to zadd, key: ' + key + ', params: ' + params, err.message, err.stack);
+          logger.error('failed to zrangebyscore, key: ' + key + ', params: ' + params, err.message, err.stack);
           reject(err);
         } else {
           resolve(res);
@@ -240,6 +240,29 @@ RedisCache.prototype.zrangebyscore = function(args) {
         } else {
           client.zrangebyscore(key, params, callback);
         }
+        client.quit();
+      });
+    } else {
+      reject(new Error('empty args' + args));
+    }
+  });
+}
+
+RedisCache.prototype.zrem = function(args) {
+  let self = this,
+    key,
+    members;
+  return new Promise((resolve, reject) => {
+    if (args && (key = args.key) && (members = args.members)) {
+      self.activateClient().then((client) => {
+        client.zrem(key, members, (err, res) => {
+          if (err) {
+            logger.error('failed to zrem, key: ' + key + ', member: ' + member, err.message, err.stack);
+            reject(err);
+          } else {
+            resolve(res);
+          }
+        });
         client.quit();
       });
     } else {
@@ -338,7 +361,6 @@ RedisCache.prototype.subscribe = function(args) {
   });
 }
 
-
 RedisCache.prototype.parseObjectResult = function(result) {
   let self = this;
   return new Promise((resolve, reject) => {
@@ -351,6 +373,53 @@ RedisCache.prototype.parseObjectResult = function(result) {
       }
     } else {
       resolve(null);
+    }
+  });
+}
+
+RedisCache.prototype.genZsetArgs = function(key, data, memberField, scoreField){
+  let self = this;
+  return new Promise((resolve, reject)=>{
+    if(!key){
+      return reject(new Error('empty key!', key));
+    }
+    if(!data){
+      return reject(new Error('empty data!', data));
+    }
+    if(typeof scoreCalculator !== 'function'){
+      return reject(new Error('scoreCalculator is not a function!'));
+    }
+    if (!Array.isArray(data)) {
+      data = [data];
+    }
+    memberField = memberField || 'id';
+    if(scoreField){
+      let scoreMap = {};
+      data.forEach((item) => {
+        let score = item[scoreField],
+          member = item[memberField];
+        if(!score || !member){
+          return reject(new Error('empty score or member: ', item));
+        }
+        scoreMap[member] = score;
+      });
+      resolve({
+        key: key,
+        scoreMap: scoreMap
+      });
+    } else {
+      let members = [];
+      data.forEach((item)=>{
+        let member = item[memberField];
+        if(!member){
+          return reject(new Error('empty member: ', item));
+        }
+        members.push(member);
+      });
+      resolve({
+        key: key,
+        members: members
+      });
     }
   });
 }

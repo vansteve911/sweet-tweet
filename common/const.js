@@ -5,14 +5,19 @@ module.exports = {
 			tweetIdList: 'twil_'
 		},
 		user: {
-			user: 'u_'
+			user: 'u_',
+      userRelation: 'ur_', // 
+      userRelationListByUid: 'ur_lu_',
+      userRelationListByTargetUid: 'ur_ltu_'
 		},
     chat: {
       userChannel: 'ch_uc_', // k-v
       notifyChannel: 'ch_nc_',
       channelMsgQueue: 'ch_cmq_', // FIFO
       offlineClientQueue: 'ch_ocq_', // LRU
-      offlineUserMsgQueue: 'ch_oumq_' // FIFO
+      offlineUserMsgQueue: 'ch_oumq_', // FIFO
+      userChatSessions: 'ch_ucsl_', // zset
+      chatSession: 'ch_cs_', // k-v
     }
 	},
   chat:{

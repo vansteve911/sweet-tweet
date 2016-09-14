@@ -17,7 +17,7 @@ router.get('/me', reqSession, auth.userSession, auth.userAuth, function(req, res
 	}
 });
 
-router.get('/:id', function(req, res) {
+router.get('/id/:id', function(req, res) {
 	us.get(req.params.id)
 		.then((data) => {
 			apiResult(res, data);
@@ -63,5 +63,20 @@ router.post('/me', reqSession, auth.userSession, auth.userAuth, function(req, re
 			apiResult(res, null, err);
 		});
 });
+
+router.get('/search', function(req, res) {
+	let nickname = req.param('nickname'),
+		pageSize = req.param('pageSize') || 10,
+		pageNo = req.param('pageNo') || 1;
+	console.debug('into search');
+
+	us.search(nickname, pageSize, pageNo)
+		.then((data)=>{
+			apiResult(res, data);
+		})
+		.catch((err) => {
+			apiResult(res, null, err);
+		});
+})
 
 module.exports = router;

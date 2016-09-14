@@ -74,24 +74,32 @@ DB.prototype.save = function(args) {
 
 DB.prototype.select = function(args) {
   let self = this;
-  return self.query(args).then(self.parseResultRow);
+  return self.query(args)
+    .then(self.parseResultRow)
+    .catch((err) => {
+      logger.error('failed to select');
+      logger.error(err);
+      self.parseResultRow(null);
+    })
 };
 
 DB.prototype.selectList = function(args) {
   let self = this;
-  return self.query(args).then(self.parseResultRows);
+  return self.query(args)
+    .then(self.parseResultRows)
+    .catch((err) => {
+      logger.error('failed to select list');
+      logger.error(err);
+      self.parseResultRows(null);
+    });
 };
-
 
 DB.prototype.parseResultRows = function(result) {
   return new Promise(function(resolve, reject) {
     if (!result || !result.rows || !Array.isArray(result.rows)) {
-      let err = new Error('empty result!');
-      logger.error(err.message, err.stack);
-      reject(err);
+      resolve(null);
     } else {
       resolve(result.rows);
-      return;
     }
   });
 }
@@ -100,8 +108,9 @@ DB.prototype.parseResultRow = function(result) {
     if (!result || !Array.isArray(result.rows) || !result.rows) {
       resolve(null);
     } else {
-      if(result.rows.length > 1){
+      if (result.rows.length > 1) {
         logger.error('get multiple line results!');
+        return resolve(null);
       }
       resolve(result.rows[0]);
     }

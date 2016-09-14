@@ -6,33 +6,24 @@ const util = require('util'),
   multipart = require('connect-multiparty'),
   qiniuUtils = require('../utils/qiniuUtils.js'),
   httpUtils = require('../utils/httpUtils.js'),
-  apiResult = require('../apiResult.js');
+  apiResult = require('../apiResult.js'),
+  ApiError = require('../common/apiError'),
+  ErrorCode = require('../common/ErrorCode'),
+  reqSession = require('../middlewares/session'),
+  auth = require('../middlewares/auth');
 
-router.get('/', function(req, res) {
-  apiResult(res);
+router.get('/certs', reqSession, auth.userSession, auth.userAuth, function(req, res) {
+  let certs = qiniuUtils.genUploadCerts(req.param('filename'));
+  if(certs){
+    apiResult(res, certs); 
+  } else {
+    apiResult(new ApiError('gen upload certs failed'), ErrorCode.FAILED);
+  }
 });
 
-router.get('/token', function(req, res) {
-  let key = qiniuUtils.generateUploadedKey(req.param('filename'));
-  let token = qiniuUtils.generateUploadToken(key);
-  apiResult(res, {
-    token: token,
-    key: key
-  });
-});
-
-router.post('/testUploadPic', multipart(), function(req, res) {
-  logger.debug(req.body);
-  logger.debug(req.files);
-  apiResult(res);
-});
-
-router.post('/uploadFromUrl', function(req, res, next) {
+router.post('/uploadFromUrl', reqSession, auth.userSession, auth.userAuth, function(req, res, next) {
   let url = req.param('url');
-  let password = req.param('password');
-  if ('tmptmptmp' !== password) { // TODO
-    next(new Error('not authorized!'), req, res);
-  } else if (url) {
+  if (url) {
     let key = qiniuUtils.generateUploadedKey(getFilePathName(url));
     let token = qiniuUtils.generateUploadToken(key);
     if (token) {
@@ -48,12 +39,14 @@ router.post('/uploadFromUrl', function(req, res, next) {
         } else {
           logger.debug(util.format('file [%s] upload success! response from qiniu: %s', url, data));
           let respJson = JSON.parse(data);
-          apiResult(res, respJson);
+          return apiResult(res, respJson);
         }
       });
+    } else {
+      apiResult(new ApiError('gen token failed'), ErrorCode.BAD_REQUEST);
     }
   } else {
-    next(new Error('empty url'), req, res);
+    apiResult(new ApiError('empty url'), ErrorCode.BAD_REQUEST);
   }
 });
 

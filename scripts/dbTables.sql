@@ -24,3 +24,26 @@ CREATE TABLE IF NOT EXISTS user_basic (
   remark varchar(500) NOT NULL DEFAULT ''
 );
 CREATE INDEX idx_nickname ON user_basic (nickname);
+
+CREATE TABLE IF NOT EXISTS user_relation  (
+  _id serial PRIMARY KEY NOT NULL,
+  id bigint UNIQUE NOT NULL DEFAULT '0',
+  uid bigint NOT NULL DEFAULT '0',
+  target_uid bigint NOT NULL DEFAULT '0',
+  status smallint NOT NULL DEFAULT '0',
+  create_time date,
+  update_time date
+);
+CREATE INDEX idx_uid_time ON user_relation (uid, update_time DESC);
+CREATE INDEX idx_tgtuid_time ON user_relation (target_uid, update_time DESC);
+
+CREATE TABLE IF NOT EXISTS chat_session (
+  _id serial PRIMARY KEY NOT NULL,
+  uid bigint NOT NULL,
+  to_uid bigint NOT NULL,
+  unread_cnt int NOT NULL DEFAULT '0',
+  create_time date,
+  update_time date
+);
+CREATE INDEX idx_uid_touid ON chat_session (uid, to_uid);
+CREATE INDEX idx_uid_time ON chat_session (uid, update_time DESC);

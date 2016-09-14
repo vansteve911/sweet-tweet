@@ -86,8 +86,8 @@ Tweet.prototype.getList = function(score, count) {
 						// get from db
 						self.dbStore.getTweetList(new Date(score), count, 0)
 							.then((tweets) => {
+								resolve(tweets);
 								if (tweets) {
-									resolve(tweets);
 									let promises = tweets.map(tweet =>
 										self.add(tweet)
 									);
@@ -99,10 +99,16 @@ Tweet.prototype.getList = function(score, count) {
 										});
 								}
 							})
-							.catch(reject);
+							.catch((err) => {
+								logger.error();
+								resolve(null);
+							});
 					}
 				})
-				.catch(reject);
+			.catch((err) => {
+				logger.error();
+				resolve(null);
+			});
 		} else {
 			resolve(null);
 		}

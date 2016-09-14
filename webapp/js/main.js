@@ -62,3 +62,32 @@ var Emitter = function() {
 var getFilePathName = function(path) {
   return path && (res = path.match(/[^\/\\]+.\w$/)) && res[0];
 }
+
+var http = function(args) {
+  return new Promise((resolve, reject) => {
+    if (args) {
+      if (typeof args === 'string') {
+        args = {
+          url: args
+        }
+      }
+      $.ajax(Object.assign(args, {
+        success: (data)=> {
+          resolve(data);
+        },
+        error: (err) => {
+          reject(err);
+        }
+      }));
+    }
+  });
+}
+
+var httpPost = function(url, data) {
+  return http({
+    url: url,
+    method: 'POST',
+    data: data,
+    contentType: 'application/json'
+  });
+}

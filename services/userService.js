@@ -160,6 +160,23 @@ UserService.prototype.update = function(id, data) {
 	});
 }
 
+UserService.prototype.search = function (nickname, pageSize, pageNo) {
+	let self = this, 
+		error = new ApiError('invalid request!', ErrorCode.BAD_REQUEST);
+	console.debug('into search');
+	return new Promise((resolve, reject)=>{
+		if(!nickname){
+			return reject(error);
+		}
+		if(pageSize <= 0 || pageNo <= 0){
+			return resolve(null);
+		}
+		ub.searchByNickname(nickname, pageSize, (pageNo - 1) * pageSize)
+			.then(resolve)
+			.catch(reject);
+	});
+}
+
 function genUserID(account) {
 	if (account) {
 		return cryptUtils.genID('user/' + account);

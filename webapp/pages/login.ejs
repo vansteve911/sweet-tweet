@@ -1,0 +1,79 @@
+<% include header.ejs %>
+<div class="container">
+<% if (user) { %>
+
+<h1>您已登录</h1>
+
+<% } else { %>
+<div id = "form" class="form-signin">
+  <h2 class="form-signin-heading"><%= isLogin ? '登录' : '注册' %></h2>
+  <label for="inputEmail" class="sr-only">邮箱</label>
+  <input v-model="account" type="email" id="inputEmail" class="form-control" placeholder="xxx@yyy.com" required="" autofocus="">
+  <% if (!isLogin) { %>
+  <label for="inputNickname" class="sr-only">昵称</label>
+  <input v-model="nickname" type="nickname" id="inputNickname" class="form-control" placeholder="昵称" required="">
+  <% } %>
+  <label for="inputPassword" class="sr-only">密码</label>
+  <input v-model="password" type="password" id="inputPassword" class="form-control" placeholder="密码" required="">
+  <div class="checkbox">
+    <label>
+      <input v-model="remember-me" type="checkbox" value="remember-me"> 记住我
+    </label>
+  </div>
+  <button class="btn btn-lg btn-primary btn-block" v-on:click="<%= isLogin ? 'login' : 'signUp' %>">提交</button>
+</div>
+<% } %>
+</div>
+<script src="/webapp/js/vue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/vue.resource/0.9.3/vue-resource.min.js"></script>
+<script>
+Vue.http.options.root = '/';
+var form = new Vue({
+  el: "#form",
+  data: {
+    account: '',
+    password: '',
+    nickname: ''
+  }, 
+  computed: {
+    dataJson: function() {
+      return JSON.stringify({
+        account: this.account,
+        password: this.password,
+        nickname: this.nickname
+      })
+    }
+  },
+  methods: {
+    login: function(){
+      this.$http.post('/api/auth/login', {
+          account: this.account,
+          password: this.password,
+          nickname: this.nickname
+        })
+        .then((response) => {
+          alert('登录成功啦！' + JSON.stringify(response));
+        })
+        .catch((response) => {
+          alert('登录失败啦！' + response);
+        });
+    }, 
+    signUp: function(){
+      this.$http.post('/api/user/', {
+          account: this.account,
+          password: this.password,
+          nickname: this.nickname
+      })
+        .then((response) => {
+          alert('注册成功啦！' + JSON.stringify(response));
+        })
+        .catch((response) => {
+          alert('注册失败啦！' + response);
+        });
+
+    }
+  }
+})
+
+</script>
+<% include footer.ejs %>

@@ -1,0 +1,33 @@
+<% include header.ejs %>
+<style>
+.list-avatar {
+  min-width: 50px;
+  float: left;
+}
+.list-nickname {
+  float: left;
+  padding: 10px;
+}
+</style>
+<div class="container">
+  <div class="row">
+    <div class="col-xs-12 col-sm-12 placeholder">
+      <input type="text" placeholder="搜索用户...">
+      <button type="button" class="btn btn-primary btn-sm">搜索</button>
+    </div> 
+  </div>
+  <div class="row">
+    <div class="col-xs-12 col-sm-12 placeholder">
+      <ul class="media-list">
+        <li class="media">
+          <div class="chat-session">
+            <img class="avatar list-avatar" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==">
+            <div class="list-nickname">昵称</div>
+          </div>
+        </li>
+      </ul>  
+    </div>
+  </div>
+  
+</div>
+<% include footer.ejs %>

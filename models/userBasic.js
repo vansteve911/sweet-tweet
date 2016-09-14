@@ -2,10 +2,10 @@
 const util = require('util'),
 	DB = require('../storage/db'),
 	RedisCache = require('../storage/cache'),
-	config = require('../config'),
-  logger = require('../logger'),
+	logger = require('../logger'),
 	ApiError = require('../common/apiError'),
-	ErrorCode = require('../common/errorCode');
+	ErrorCode = require('../common/errorCode'),
+	CommonUtils = require('../util/commonUtils');
 
 function UserBasic(data) {
 	data = data || {};
@@ -16,24 +16,8 @@ function UserBasic(data) {
 	this.avatar = data.avatar || '';
 	this.type = parseInt(data.type) || 0;
 	this.status = parseInt(data.status) || 0;
-	this.create_time = _parseDate(data.create_time);
+	this.create_time = CommonUtils.parseDate(data.create_time);
 	this.remark = data.remark || '';
-}
-
-function _parseDate(date) {
-	if (date instanceof Date) {
-		return date;
-	} else if (typeof date === 'string') {
-		let res;
-		try {
-			res = new Date()
-		} catch (err) {
-			logger.error(err);
-			res = new Date();
-		}
-		return res;
-	}
-	return new Date();
 }
 
 UserBasic.prototype.add = function(data) {
@@ -114,24 +98,24 @@ UserBasic.prototype.get = function(id) {
 }
 
 UserBasic.prototype.authenticate = function(id, password) {
-  let self = this;
-  logger.debug(id, password);
-  return new Promise((resolve, reject)=>{
-    if (id = parseInt(id)) {
-      self.dbStore.get(id, true)
-        .then((user)=>{
-          if(user && user.password === password){
-            delete user.password;
-            resolve(user);
-          } else {
-            reject();
-          }
-        })
-        .catch(reject);
-    }else {
-      reject(new Error('invalid id: ' + id));
-    }
-  });
+	let self = this;
+	logger.debug(id, password);
+	return new Promise((resolve, reject) => {
+		if (id = parseInt(id)) {
+			self.dbStore.get(id, true)
+				.then((user) => {
+					if (user && user.password === password) {
+						delete user.password;
+						resolve(user);
+					} else {
+						reject();
+					}
+				})
+				.catch(reject);
+		} else {
+			reject(new Error('invalid id: ' + id));
+		}
+	});
 }
 
 UserBasic.prototype.getByNickname = function(nickname) {
@@ -147,6 +131,21 @@ UserBasic.prototype.getByNickname = function(nickname) {
 	});
 }
 
+UserBasic.prototype.searchByNickname = function(nickname, size, offset) {
+	let self = this;
+	size = size || 10;
+	offset = offset || 0;
+	return new Promise((resolve, reject) => {
+		if (nickname && typeof nickname === 'string') {
+			logger.debug('into searchByNickname')
+			self.dbStore.searchByNickname(nickname, size, offset)
+				.then(resolve)
+				.catch(reject);
+		} else {
+			reject(new Error('invalid nickname: ' + nickname));
+		}
+	});
+}
 
 /**
  * user cache store
@@ -191,7 +190,8 @@ DbStore.prototype.sqls = {
 	create: 'INSERT INTO user_basic (id, type, status, account, password, nickname, avatar, create_time, remark) VALUES ($1::bigint,  $2::smallint, $3::smallint, $4::text, $5::text, $6::text, $7::text, $8::date, $9::text)',
 	update: 'UPDATE user_basic SET type=$2::smallint, status=$3::smallint, account=$4::text, nickname=$5::text, avatar=$6::text, create_time=$7::date, remark=$8::text WHERE id=$1::bigint',
 	select: 'SELECT * FROM user_basic WHERE id=$1::bigint',
-	selectByNickname: 'SELECT * FROM user_basic WHERE nickname=$1::text'
+	selectByNickname: 'SELECT * FROM user_basic WHERE nickname=$1::text',
+	searchByNickname: 'SELECT * FROM user_basic WHERE nickname LIKE $1::text LIMIT $2::int OFFSET $3::int',
 }
 
 DbStore.prototype.create = function(data) {
@@ -245,7 +245,7 @@ DbStore.prototype.get = function(id, withPassword) {
 	return new Promise((resolve, reject) => {
 		self.select(args)
 			.then((res) => {
-      resolve(removeHiddenFields(res, !withPassword));
+				resolve(removeHiddenFields(res, !withPassword));
 			})
 			.catch(reject);
 	});
@@ -266,12 +266,28 @@ DbStore.prototype.getByNickname = function(nickname) {
 	});
 }
 
+DbStore.prototype.searchByNickname = function(nickname, limit, offset) {
+	let self = this,
+		args = {
+			sql: self.sqls.searchByNickname,
+			params: ['%' + nickname + '%', limit, offset]
+		};
+	return new Promise((resolve, reject) => {
+		self.selectList(args)
+			.then((res) => {
+				let list = (res && Array.isArray(res))? res.map(data => removeHiddenFields(data, true)) : [];
+				resolve(list);
+			})
+			.catch(reject);
+	});
+}
+
 function removeHiddenFields(data, removePassword) {
 	if (data) {
 		delete data._id;
-    if(removePassword){
-      delete data.password;
-    }
+		if (removePassword) {
+			delete data.password;
+		}
 	}
 	return data;
 }
