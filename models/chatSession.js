@@ -30,7 +30,7 @@ ChatSession.prototype.get = function(args) {
               .then((chatSession) => {
                 resolve(chatSession);
                 if (chatSession) {
-                  self.cacheStore.set(chatSession)
+                  self.cacheStore.setChatSession(chatSession)
                     .catch((err) => {
                       logger.error('failed to set chatSession in cache', err);
                     })
@@ -111,7 +111,7 @@ ChatSession.prototype.getUserSessionList = function(uid, score, size, offset) {
         })
         .then((idList) => {
           logger.debug('idList: ', idList);
-          if (Array.isArray(idList) && idList) {
+          if (Array.isArray(idList) && idList.length > 0) {
             let promises = idList.map(x => self.get({
               uid: x.split('_')[0],
               to_uid: x.split('_')[1],
@@ -126,6 +126,7 @@ ChatSession.prototype.getUserSessionList = function(uid, score, size, offset) {
             // 
             self.dbStore.getListByUid(uid)
               .then((dataList) => {
+                logger.debug(dataList);
                 resolve(dataList);
                 if (dataList) {
                   let promises = dataList.map(x => self.cacheStore.setChatSession(x));
@@ -199,7 +200,6 @@ DbStore.prototype.update = function(data) {
         if (result <= 0) {
           reject(new Error('update chatSession failed'));
         } else {
-          logger.debug('after update chatSession: ', chatSession);
           resolve(chatSession);
         }
       })

@@ -5,7 +5,7 @@ const util = require('util'),
 	logger = require('../logger'),
 	ApiError = require('../common/apiError'),
 	ErrorCode = require('../common/errorCode'),
-	CommonUtils = require('../util/commonUtils');
+	CommonUtils = require('../utils/commonUtils');
 
 function UserBasic(data) {
 	data = data || {};

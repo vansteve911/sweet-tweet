@@ -12,6 +12,7 @@ const express = require('express'),
   authRouter = require('./controllers/auth'),
   tweetRouter = require('./controllers/tweet'),
   uploadRouter = require('./controllers/upload'),
+  chatRouter = require('./controllers/chat'),
   userRouter = require('./controllers/user'),
   errorHandler = require('./middlewares/errorHandler');
 
@@ -42,6 +43,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/tweet', tweetRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/user', userRouter);
+app.use('/api/chat', chatRouter);
 
 // config error handlers
 app.use(errorHandler.requestErrorHandler);

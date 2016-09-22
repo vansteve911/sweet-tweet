@@ -2,7 +2,7 @@
 const ChatSession = require('../models/chatSession'),
   logger = require('../logger');
 
-let uid = 1, to_uid = 2,
+let uid = 2804250561417056, to_uid = 3964845081706182,
   chatSession = new ChatSession({
   uid: uid,
   to_uid: to_uid,
@@ -65,6 +65,18 @@ let uid = 1, to_uid = 2,
 
 let model = new ChatSession();
 
+let service = require('../services/chatSessionService');
+
+service.acquireSession(uid, to_uid)
+  .then((res) => {logger.debug(res)})
+  .catch((err) => {logger.error(err)});
+
+// setTimeout(function() {
+//   model.getUserSessionList(uid, (new Date()).getTime())
+//   .then((res) => {logger.debug(res)})
+//   .catch((err) => {logger.error(err)});  
+// }, 10);
+
 // model.get(uid, to_uid)
 //   .then((res) => {logger.debug(res)})
 //   .catch((err) => {logger.error(err)});
@@ -74,9 +86,7 @@ let model = new ChatSession();
 //   .then((res) => {logger.debug(res)})
 //   .catch((err) => {logger.error(err)});
 
-model.getUserSessionList(uid, (new Date()).getTime())
-  .then((res) => {logger.debug(res)})
-  .catch((err) => {logger.error(err)});
+
   
 
 

@@ -10,14 +10,15 @@ const router = require('express').Router(),
 
 // get
 router.get('/me', reqSession, auth.userSession, auth.userAuth, function(req, res) {
-	if (req.user) {
-		apiResult(res, req.user);
-	} else {
-		apiResult(res, null, new ApiError('user not login', ErrorCode.UNAUTHORIZED));
-	}
+	apiResult(res, req.user);
+	// if (req.user) {
+	// 	apiResult(res, req.user);
+	// } else {
+	// 	apiResult(res, null, new ApiError('user not login', ErrorCode.UNAUTHORIZED));
+	// }
 });
 
-router.get('/id/:id', function(req, res) {
+router.get('/info/:id', function(req, res) {
 	us.get(req.params.id)
 		.then((data) => {
 			apiResult(res, data);
