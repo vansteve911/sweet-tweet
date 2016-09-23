@@ -1,2 +1,2 @@
-# 简介
-个人网络收藏夹，收藏网址及截图快照。用于展示
+# Sweet-Tweet 
+An online-chatting web app demo. Based on express, redis and socket.io.
