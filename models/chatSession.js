@@ -68,9 +68,9 @@ ChatSession.prototype.add = function(data) {
         })
         .then((chatSession) => {
           resolve(chatSession);
-          logger.debug('in add');
+          logger.debug('in add: chatSession: ', chatSession);
           self.cacheStore.setChatSession(chatSession)
-            .then(()=>{
+            .then(() => {
               return self.cacheStore.addToUserSessionList(chatSession.uid, chatSession);
             })
             .catch(logger.error);
@@ -85,72 +85,66 @@ ChatSession.prototype.add = function(data) {
 ChatSession.prototype.update = function(data) {
   let self = this;
   return new Promise((resolve, reject) => {
-    if (data) {
-      self.dbStore.update(data)
-        .then((chatSession) => {
-          resolve(chatSession);
-          self.cacheStore.setChatSession(chatSession)
-            .catch(logger.error);
-        })
-        .catch(reject);
-    } else {
-      reject(new Error('empty data'));
+    if (!data) {
+      return reject(new Error('empty data'));
     }
+    self.dbStore.update(data)
+      .then((chatSession) => {
+        resolve(chatSession);
+        self.cacheStore.setChatSession(chatSession)
+          .then(()=>{
+            return self.cacheStore.addToUserSessionList(chatSession.uid, chatSession);
+          })
+          .then(()=>{
+            logger.debug('update success!', chatSession);
+          })
+          .catch(logger.error);
+      })
+      .catch(reject);
   });
 }
 
 ChatSession.prototype.getUserSessionList = function(uid, score, size, offset) {
   let self = this;
   return new Promise((resolve, reject) => {
-    if (uid) {
-      self.cacheStore.getUserSessionIdList({
-          uid: uid,
-          score: score,
-          count: size,
-          offset: offset
-        })
-        .then((idList) => {
-          logger.debug('idList: ', idList);
-          if (Array.isArray(idList) && idList.length > 0) {
-            let promises = idList.map(x => self.get({
-              uid: x.split('_')[0],
-              to_uid: x.split('_')[1],
-            }));
-            Promise.all(promises)
-              .then(resolve)
-              .catch((err) => {
-                logger.error(err);
-                resolve(null);
-              });
-          } else {
-            // 
-            self.dbStore.getListByUid(uid)
-              .then((dataList) => {
-                logger.debug(dataList);
-                resolve(dataList);
-                if (dataList) {
-                  let promises = dataList.map(x => self.cacheStore.setChatSession(x));
-                  promises.push(self.cacheStore.addToUserSessionList(uid, dataList));
-                  Promise.all(promises)
-                    .then(resolve)
-                    .catch((err) => {
-                      logger.error(err);
-                    });
-                }
-              })
-              .catch((err) => {
-                logger.error(err);
-                resolve(null);
-              });
-          }
-        })
-        .catch((err) => {
-          logger.error(err);
-          resolve(null);
-        });
-    } else {
-      resolve(null);
+    if (!uid) {
+      return resolve(null);
     }
+    self.cacheStore.getUserSessionIdList({
+        uid: uid,
+        score: score,
+        count: size,
+        offset: offset
+      })
+      .then((idList) => {
+        logger.debug('idList: ', idList);
+        if (Array.isArray(idList) && idList.length > 0) {
+          let promises = idList.map(x => self.get({
+            uid: x.split('_')[0],
+            to_uid: x.split('_')[1],
+          }));
+          return Promise.all(promises);
+        } else {
+          return self.dbStore.getListByUid(uid)
+            .then((dataList) => {
+              logger.debug(dataList);
+              resolve(dataList);
+              logger.debug('dataList: ', dataList);
+              if (Array.isArray(dataList) && dataList.length > 0) {
+                let promises = dataList.map(x => self.cacheStore.setChatSession(x));
+                promises.push(self.cacheStore.addToUserSessionList(uid, dataList));
+                return Promise.all(promises);
+              } else {
+                return Promise.resolve(null);
+              }
+            })
+        }
+      })
+      .then(resolve)
+      .catch((err) => {
+        logger.error(err);
+        resolve(null);
+      });
   });
 }
 
@@ -174,6 +168,7 @@ DbStore.prototype.create = function(data) {
       params: [chatSession.uid, chatSession.to_uid, chatSession.unread_cnt, chatSession.create_time, chatSession.update_time]
     };
   return new Promise((resolve, reject) => {
+    logger.debug('into create chatSession result');
     self.save(args)
       .then(function(result) {
         logger.debug('create chatSession result: ' + result);
@@ -183,7 +178,11 @@ DbStore.prototype.create = function(data) {
           resolve(chatSession);
         }
       })
-      .catch(reject);
+      // .catch(reject);
+      .catch((err) => {
+        logger.error(err);
+        reject(err);
+      });
   });
 }
 

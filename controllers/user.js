@@ -11,11 +11,6 @@ const router = require('express').Router(),
 // get
 router.get('/me', reqSession, auth.userSession, auth.userAuth, function(req, res) {
 	apiResult(res, req.user);
-	// if (req.user) {
-	// 	apiResult(res, req.user);
-	// } else {
-	// 	apiResult(res, null, new ApiError('user not login', ErrorCode.UNAUTHORIZED));
-	// }
 });
 
 router.get('/info/:id', function(req, res) {
@@ -38,7 +33,6 @@ router.get('/verify/nickname', function(req, res) {
 			apiResult(res, null, err);
 		});
 });
-
 
 // create
 router.post('', function(req, res) {
