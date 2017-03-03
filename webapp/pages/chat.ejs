@@ -1,0 +1,118 @@
+<% include header.ejs %>
+  <style>
+
+  </style>
+  <div id="wrapper" class="container">
+    <div class="row chat-window col-xs-12" id="chat_window_1">
+      <div class="col-xs-12 col-md-12 chat-sub-window">
+        <div class="panel panel-default">
+          <div class="panel-body msg_container_base">
+            <div v-for="msg in messages">
+              <div v-if="msg.fromUid !== toUserId" class="row msg_container base_sent">
+                <div class="col-md-10 col-xs-10">
+                  <div class="messages msg_sent">
+                    <p>{{ msg.body }}</p>
+                    <time :datetime="msg.time">{{ msg.time }}</time>
+                  </div>
+                </div>
+                <div class="col-md-2 col-xs-2 avatar">
+                  <img :src="me.avatar" class=" img-responsive ">
+                </div>
+              </div>
+              <div v-else>
+                11
+                <div class="row msg_container base_receive">
+                  <div class="col-md-2 col-xs-2 avatar">
+                    <img :src="toUser.avatar" class=" img-responsive ">
+                  </div>
+                  <div class="col-md-10 col-xs-10">
+                    <div class="messages msg_receive">
+                      <p>{{ msg.body }}</p>
+                      <time :datetime="msg.time">{{ msg.time }}</time>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="panel-footer">
+            <div class="input-group">
+              <input id="btn-input" ref="msgInput" type="text" class="form-control input-sm chat_input" v-model="text" placeholder="写点什么..." />
+              <span class="input-group-btn">
+                <button class="btn btn-primary btn-sm" id="btn-chat" @click="sendMsg">发送</button>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="/webapp/js/socket.io-1.4.5.js"></script>
+  <script src="/webapp/js/main.js"></script>
+  <script src="/webapp/js/chat.js"></script>
+  <script src="/webapp/js/vue.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/vue.resource/0.9.3/vue-resource.min.js"></script>
+  <script>
+  // vue
+  Vue.http.options.root = '/';
+  var app = new Vue({
+    el: '#wrapper',
+    data: {
+      messages: [],
+      me: {},
+      toUserId: <%= toUserId %>,
+      toUser: {},
+      text: null,
+      chatClient: null,
+    },
+    created: function() {
+      var vm = this;
+      vm.$http.get('/api/user/me')
+        .then(response => {
+          vm.me = response.json().data;
+          console.log(vm.me);
+        });
+      vm.$http.get('/api/user/info/' + vm.toUserId)
+        .then(response => {
+          vm.toUser = response.json().data;
+          console.log(vm.toUser);
+        });
+      var chatClient = new ChatClient('/');
+      chatClient.on(Constants.chat.chatEvent.ONLINE, function(data) {
+        console.log('log in success!', data);
+      });
+      chatClient.on(Constants.chat.chatEvent.RECV, function(data) {
+        console.log('received message: ', data);
+        vm.recvMsg(data);
+      })
+      chatClient.on(Constants.chat.chatEvent.OFFLINE, function(data) {
+        console.log('chatClient offline: ', data);
+      })
+      vm.chatClient = chatClient;
+    },
+    methods: {
+      sendMsg: function() {
+        var vm = this;
+        if (!vm.text) {
+          return;
+        }
+        var msg = {
+          fromUid: vm.me.id,
+          toUid: vm.toUserId,
+          body: vm.text,
+          time: new Date()
+        };
+        vm.text = '';
+        vm.chatClient.sendMsg(msg);
+        vm.appendMsg(msg);
+      },
+      recvMsg: function(msg) {
+        this.appendMsg(msg);
+      },
+      appendMsg: function(msg) {
+        this.messages.push(msg);
+      }
+    }
+  });
+  </script>
+  <% include footer.ejs %>

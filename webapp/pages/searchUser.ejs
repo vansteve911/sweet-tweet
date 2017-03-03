@@ -1,0 +1,60 @@
+<% include header.ejs %>
+<style>
+.list-avatar {
+  width: 50px;
+  height: 50px;
+  float: left;
+}
+.list-nickname {
+  float: left;
+  padding: 10px;
+}
+</style>
+<div id="wrapper" class="container">
+  <div class="row">
+    <div class="col-xs-12 col-sm-12 placeholder">
+      <input type="text" v-model="query" placeholder="搜索用户...">
+      <button type="button" class="btn btn-primary btn-sm" @click="search">搜索</button>
+    </div> 
+  </div>
+  <div class="row">
+    <div class="col-xs-12 col-sm-12 placeholder">
+      <ul class="media-list">
+        <li v-for="user in result" class="media">
+          <div class="search-result">
+            <img class="avatar list-avatar" src="{{ user.avatar }}">
+            <div class="list-nickname">{{ user.nickname }} <a href="{{ '/chat/' + user.id }}">撩TA</a></div>
+          </div>
+        </li>
+      </ul>  
+    </div>
+  </div>
+</div>
+<script src="/webapp/js/vue.min.js"></script>
+<script src="https://cdn.jsdelivr.net/vue.resource/0.9.3/vue-resource.min.js"></script>
+<script>
+Vue.http.options.root = '/';
+var page = new Vue({
+  el: '#wrapper',
+  data: {
+    query: '',
+    result: [],
+  },
+  methods: {
+    search: function() {
+      if (!this.query) {
+        return;
+      }
+      var vm = this;
+      this.$http.get('/api/user/search?nickname=' + this.query)
+        .then((response) => {
+          vm.result = response.json().data;
+        })
+        .catch((response) => {
+          alert('错误！' + response);
+        });
+    }
+  }
+})
+</script>
+<% include footer.ejs %>
