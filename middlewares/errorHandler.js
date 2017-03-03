@@ -4,11 +4,11 @@ const logger = require('../logger');
 // define request error handler
 function requestErrorHandler(err, req, res, next) {
   logger.error('error occured', err);
-  res.status(500);
-  res.json({
-    'code': err.code,
-    'error': err.message
-  });
+  res.status(err.code)
+  	.json({
+	    'code': err.code,
+	    'error': err.message
+	  });
 }
 
 function uncaughtExceptionHandler(err){

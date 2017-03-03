@@ -52,7 +52,8 @@ var form = new Vue({
           nickname: this.nickname
         })
         .then((response) => {
-          alert('登录成功啦！' + JSON.stringify(response));
+          alert('登录成功啦！');
+          window.location.href = '/';
         })
         .catch((response) => {
           alert('登录失败啦！' + response);
@@ -65,12 +66,12 @@ var form = new Vue({
           nickname: this.nickname
       })
         .then((response) => {
-          alert('注册成功啦！' + JSON.stringify(response));
+          alert('注册成功啦！');
+          window.location.href = '/';
         })
         .catch((response) => {
-          alert('注册失败啦！' + response);
+          alert('注册失败啦！');
         });
-
     }
   }
 })

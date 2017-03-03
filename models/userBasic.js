@@ -137,7 +137,6 @@ UserBasic.prototype.searchByNickname = function(nickname, size, offset) {
 	offset = offset || 0;
 	return new Promise((resolve, reject) => {
 		if (nickname && typeof nickname === 'string') {
-			logger.debug('into searchByNickname')
 			self.dbStore.searchByNickname(nickname, size, offset)
 				.then(resolve)
 				.catch(reject);

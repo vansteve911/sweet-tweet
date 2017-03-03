@@ -7,28 +7,48 @@ const router = require('express').Router(),
 router.use(reqSession);
 
 router.get('/', auth.userSession, (req, res) => {
-  res.render('index', model({
-    user: req.user
-  }));
+  renderIndex(req, res);
 });
 
 router.get('/login', auth.userSession, (req, res) => {
+  // if (req.user) {
+  //   renderIndex(req, res);
+  //   return;
+  // }
   res.render('login', model({
     isLogin: true
   }));
 });
 
 router.get('/signup', auth.userSession, (req, res) => {
+  if (req.user) {
+    renderIndex(req, res);
+    return;
+  }
   res.render('login', model({
     isLogin: false
   }));
 });
 
-router.get('/chat', auth.userSession, auth.pageUserAuth, (req, res) => {
-  res.render('chatSessions', model({
-    title: '聊天室'
+router.get('/find', auth.userSession, auth.pageUserAuth, (req, res) => {
+  res.render('searchUser', model({
+    title: '找人聊天'
   }));
 });
+
+router.get('/chat/:uid', auth.userSession, auth.pageUserAuth, (req, res) => {
+  res.render('chat', model({
+    title: '聊天界面',
+    user: req.user,
+    toUserId: req.params.uid
+  }));
+});
+
+function renderIndex(req, res) {
+  res.render('index', model({
+    user: req.user
+  }));
+};
 
 function model(data, req) {
   data = data || {};

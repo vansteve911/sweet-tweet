@@ -195,10 +195,12 @@ require('util').inherits(ChatService, require('events').EventEmitter);
 
 function Message(args) {
 	args = args || {};
+	this.fromUid = args.fromUid || 0;
 	this.toUid = args.toUid || 0;
 	this.body = args.body || '[系统消息]';
 	this.note = args.note;
 	this.extra = args.extra;
+	this.time = new Date();
 }
 
 function checkSocketStatus(socket, rightStatus, error) {

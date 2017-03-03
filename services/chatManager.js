@@ -113,6 +113,7 @@ function ChatManager(chatService) {
   // on client session destroyed:
   // - ChatService emits an 'offline' event to ChatManager
   // - delete local user-socket
+  // - save chat msg to offline MQ
 
   // TODO
 

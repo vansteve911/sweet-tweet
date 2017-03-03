@@ -38,9 +38,10 @@
         </div>
       </div>
       <div class="row">
-        <a href="/chat" class="2">开始聊天</a>
+        <a href="/find" class="2">找人聊天</a>
       </div>
       <% } else { %>
+      <h1>赶紧<a href="/login">登录</a>吧</h1>
         <% } %>
   </div>
   <script src="/webapp/js/vue.min.js"></script>
@@ -133,6 +134,17 @@
             alert('修改失败！' + err.message);
             vm.showAvatarModal = false;
           });
+      },
+      logout: function() {
+        alert('sdsdsd');
+        this.$http.post('/api/auth/logout')
+        .then((response) => {
+          alert('登出成功啦！' + JSON.stringify(response));
+          window.location.href = '/';
+        })
+        .catch((response) => {
+          alert('登录失败啦！' + response);
+        });
       }
     }
   });

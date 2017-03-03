@@ -16,7 +16,8 @@ function apiResult(res, data, err) {
 	if (data) {
 		ret.data = data;
 	}
-	res.json(ret);
+	res.json(ret)
+		.status(200);
 }
 
 function buildListWithScore(data, scoreAttrName, size, isScoreInDateFormat) {

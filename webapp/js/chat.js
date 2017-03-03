@@ -143,10 +143,12 @@ var ChatClient = function(serverHost, opts) {
   var Message = function(args) {
     var self = this;
     args = args || {};
+    self.fromUid = args.fromUid || 0;
     self.toUid = args.toUid || 0;
     self.body = args.body || '[系统消息]';
     self.note = args.note;
     self.extra = args.extra;
+    self.time = new Date();
   };
 
   var checkSocketStatus = function(socket, rightStatus) {

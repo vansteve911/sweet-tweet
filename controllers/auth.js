@@ -18,7 +18,7 @@ router.all('/login', reqSession, function(req, res) {
 		});
 });
 
-router.post('/logout', reqSession, auth.userSession, auth.userAuth, function(req, res) {
+router.all('/logout', reqSession, auth.userSession, auth.userAuth, function(req, res) {
 	authService.logout(req, res)
 		.then((data) => {
 			apiResult(res);
